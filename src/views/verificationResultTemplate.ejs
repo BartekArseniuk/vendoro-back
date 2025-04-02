@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weryfikacja konta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      color: #333;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 {
+      font-size: 2em;
+    }
+    p {
+      font-size: 18px;
+    }
+    .success {
+      color: #4CAF50;
+    }
+    .error {
+      color: #FF5733;
+    }
+    .warning {
+      color: #FFD700;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="<%= statusType %>"><%= message %></h1>
+  <p><%= message %></p>
+</body>
+</html>

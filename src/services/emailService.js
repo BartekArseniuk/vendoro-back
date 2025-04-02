@@ -1,0 +1,46 @@
+const nodemailer = require('nodemailer');
+const ejs = require('ejs');
+const path = require('path');
+const config = require('../../config/config.json');
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.wp.pl',
+  port: 465,
+  secure: true,
+  auth: {
+    user: config.development.EMAIL_USER,
+    pass: config.development.EMAIL_PASS,
+  },
+});
+
+const sendVerificationEmail = async (userEmail, token) => {
+  const verificationLink = `${config.development.BASE_URL}/api/users/verify/${token}`;
+
+  const htmlContent = await ejs.renderFile(path.join(__dirname, '../views/verificationEmailTemplate.ejs'), { verificationLink });
+
+  const mailOptions = {
+    from: `"Vendoro" <${config.development.EMAIL_USER}>`,
+    to: userEmail,
+    subject: 'Potwierdź swoje konto',
+    html: htmlContent,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+const sendResetPasswordEmail = async (userEmail, token) => {
+  const resetPasswordLink = `${config.development.BASE_URL}/api/users/reset-password/${token}`;
+
+  const htmlContent = await ejs.renderFile(path.join(__dirname, '../views/resetPasswordEmailTemplate.ejs'), { resetPasswordLink });
+
+  const mailOptions = {
+    from: `Vendoro <${config.development.EMAIL_USER}>`,
+    to: userEmail,
+    subject: 'Resetowanie hasła',
+    html: htmlContent,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendVerificationEmail, sendResetPasswordEmail };
