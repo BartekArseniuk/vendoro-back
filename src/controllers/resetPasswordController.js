@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
+const User = require('../models/User');
 const { sendResetPasswordEmail } = require('../services/emailService');
 const config = require('../../config/config.json');
 const bcrypt = require('bcrypt');
