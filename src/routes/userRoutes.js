@@ -21,15 +21,15 @@ const resetPasswordController = require('../controllers/resetPasswordController'
  *           schema:
  *             type: object
  *             required:
- *               - first_name
- *               - last_name
+ *               - firstName
+ *               - lastName
  *               - email
  *               - password
  *             properties:
- *               first_name:
+ *               firstName:
  *                 type: string
  *                 example: Jan
- *               last_name:
+ *               lastName:
  *                 type: string
  *                 example: Kowalski
  *               email:

@@ -39,9 +39,9 @@ exports.verifyResetToken = async (req, res) => {
             return res.status(400).json({ message: 'Nieprawidłowy lub wygasły token' });
         }
 
-        if (user.password_changed_at) {
+        if (user.passwordChangedAt) {
             const tokenIssuedAt = new Date(decoded.iat * 1000);
-            if (user.password_changed_at > tokenIssuedAt) {
+            if (user.passwordChangedAts > tokenIssuedAt) {
                 return res.status(400).json({ message: 'Token został unieważniony przez zmianę hasła' });
             }
         }
@@ -71,16 +71,16 @@ exports.updatePassword = async (req, res) => {
             return res.status(400).json({ message: 'Nie znaleziono użytkownika' });
         }
 
-        if (user.password_changed_at) {
+        if (user.passwordChangedAt) {
             const tokenIssuedAt = new Date(decoded.iat * 1000);
-            if (user.password_changed_at > tokenIssuedAt) {
+            if (user.passwordChangedAt > tokenIssuedAt) {
                 return res.status(400).json({ message: 'Token został unieważniony przez zmianę hasła' });
             }
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         user.password = hashedPassword;
-        user.password_changed_at = new Date();
+        user.passwordChangedAt = new Date();
         await user.save();
 
         return res.status(200).json({ message: 'Hasło zostało zaktualizowane' });
@@ -106,9 +106,9 @@ exports.renderResetPasswordForm = async (req, res) => {
             return res.status(400).render("resetPasswordForm", { token: null, error: "Nieprawidłowy token" });
         }
 
-        if (user.password_changed_at) {
+        if (user.passwordChangedAt) {
             const tokenIssuedAt = new Date(decoded.iat * 1000);
-            if (new Date(user.password_changed_at) > tokenIssuedAt) {
+            if (new Date(user.passwordChangedAt) > tokenIssuedAt) {
                 return res.status(400).render("resetPasswordForm", { token: null, error: "Token unieważniony przez zmianę hasła" });
             }
         }

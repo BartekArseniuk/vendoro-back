@@ -19,7 +19,7 @@ exports.verifyEmail = async (req, res) => {
       });
     }
 
-    if (user.is_verified) {
+    if (user.isVerified) {
       return res.render('verificationResultTemplate', { 
         status: 200, 
         message: 'Konto zostało już zweryfikowane', 
@@ -27,7 +27,7 @@ exports.verifyEmail = async (req, res) => {
       });
     }
 
-    user.is_verified = true;
+    user.isVerified = true;
     await user.save();
 
     return res.render('verificationResultTemplate', { 

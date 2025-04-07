@@ -9,11 +9,11 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
       },
-      first_name: {
+      firstName: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      last_name: {
+      lastName: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -26,12 +26,12 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      is_verified: {
+      isVerified: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
       },
-      password_changed_at: {
+      passwordChangedAt: {
         type: Sequelize.DATE,
         allowNull: true,
       },

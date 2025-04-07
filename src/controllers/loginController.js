@@ -16,7 +16,7 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Błędny email lub hasło' });
     }
 
-    // if (!user.is_verified) {
+    // if (!user.isVerified) {
     //   return res.status(400).json({ message: 'Please verify your email' });
     // }
 
@@ -37,8 +37,8 @@ exports.loginUser = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name
+        firstName: user.firstName,
+        lastName: user.lastName
       }
     });
   } catch (err) {
