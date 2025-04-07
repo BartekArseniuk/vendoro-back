@@ -1,10 +1,13 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const userRoutes = require('./src/routes/userRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const config = require('./config/config.json');
 const path = require('path');
+
+const userRoutes = require('./src/routes/authRoutes');
+const categoryRoutes = require('./src/routes/categoryRoutes');
+const productRoutes = require('./src/routes/productRoutes');
 
 dotenv.config();
 
@@ -18,7 +21,7 @@ const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Test API',
+            title: 'Vendoro API',
             version: '1.0.0',
             description: 'Test API',
         },
@@ -32,15 +35,36 @@ const swaggerOptions = {
                 name: 'Authorization',
                 description: 'Endpointy odpowiedzialne za rejestrację i logowanie użytkowników',
             },
+            {
+                name: 'Users',
+                description: 'Endpointy odpowiedzialne za zarządzanie użytkownikami',
+            },
+            {
+                name: 'Categories',
+                description: 'Endpointy odpowiedzialne za zarządzanie kategoriami',
+            },
+            {
+                name: 'Products',
+                description: 'Endpointy odpowiedzialne za zarządzanie produktami',
+            },
         ],
     },
     apis: ['./src/routes/*.js'],
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+const options = {
+    swaggerOptions: {
+        docExpansion: 'none'
+    }
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, options));
 
 app.use('/api/users', userRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/products', productRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

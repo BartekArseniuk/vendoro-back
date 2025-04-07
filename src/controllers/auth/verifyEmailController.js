@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const config = require('../../config/config.json');
+const User = require('../../models/User');
+const config = require('../../../config/config.json');
 const path = require('path');
 
 exports.verifyEmail = async (req, res) => {

@@ -1,10 +1,10 @@
 const express = require('express');
 const path = require('path');
 const router = express.Router();
-const registerController = require('../controllers/registerController');
-const loginController = require('../controllers/loginController');
-const verifyEmailController = require('../controllers/verifyEmailController');
-const resetPasswordController = require('../controllers/resetPasswordController');
+const registerController = require('../controllers/auth/registerController');
+const loginController = require('../controllers/auth/loginController');
+const verifyEmailController = require('../controllers/auth/verifyEmailController');
+const resetPasswordController = require('../controllers/auth/resetPasswordController');
 
 /**
  * @swagger
