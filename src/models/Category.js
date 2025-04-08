@@ -10,6 +10,11 @@ const Category = sequelize.define('Category', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  icon: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: '📦'
+  }
 }, {
   tableName: 'categories',
   timestamps: true,

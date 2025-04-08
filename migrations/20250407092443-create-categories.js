@@ -16,6 +16,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      icon: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: '📦'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -24,6 +29,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
       },
+    }, {
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_unicode_ci'
     });
   },
   async down(queryInterface, Sequelize) {

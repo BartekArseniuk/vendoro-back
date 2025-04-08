@@ -1,7 +1,7 @@
 const Category = require('../models/Category');
 
 exports.createCategory = async (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, icon } = req.body;
 
     if (!name) {
         return res.status(400).json({ message: 'Nazwa kategorii jest wymagana' });
@@ -19,6 +19,7 @@ exports.createCategory = async (req, res) => {
         const newCategory = await Category.create({
             name,
             description,
+            icon: icon || '📦'
         });
 
         return res.status(201).json({
@@ -34,10 +35,7 @@ exports.createCategory = async (req, res) => {
 exports.getAllCategories = async (req, res) => {
     try {
         const categories = await Category.findAll();
-
-        return res.status(200).json({
-            categories,
-        });
+        return res.status(200).json({ categories });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy pobieraniu kategorii' });
@@ -46,17 +44,12 @@ exports.getAllCategories = async (req, res) => {
 
 exports.getCategoryById = async (req, res) => {
     const { id } = req.params;
-
     try {
         const category = await Category.findByPk(id);
-
         if (!category) {
             return res.status(404).json({ message: 'Kategoria nie znaleziona' });
         }
-
-        return res.status(200).json({
-            category,
-        });
+        return res.status(200).json({ category });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy pobieraniu kategorii' });
@@ -65,7 +58,7 @@ exports.getCategoryById = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, icon } = req.body;
 
     if (name && name.length > 255) {
         return res.status(400).json({ message: 'Nazwa kategorii nie może przekroczyć 255 znaków' });
@@ -84,6 +77,7 @@ exports.updateCategory = async (req, res) => {
 
         category.name = name || category.name;
         category.description = description || category.description;
+        category.icon = icon || category.icon; // Aktualizacja ikony
 
         await category.save();
 
@@ -99,19 +93,13 @@ exports.updateCategory = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
     const { id } = req.params;
-
     try {
         const category = await Category.findByPk(id);
-
         if (!category) {
             return res.status(404).json({ message: 'Kategoria nie znaleziona' });
         }
-
         await category.destroy();
-
-        return res.status(200).json({
-            message: 'Kategoria została usunięta',
-        });
+        return res.status(200).json({ message: 'Kategoria została usunięta' });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy usuwaniu kategorii' });
