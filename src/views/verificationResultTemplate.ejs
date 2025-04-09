@@ -6,31 +6,49 @@
   <title>Weryfikacja konta</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
-      color: #333;
+      font-family: 'Arial', sans-serif;
+      background-color: #F2F2F2;
+      color: #242424; 
       text-align: center;
       padding: 50px;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      box-sizing: border-box;
     }
+
     h1 {
-      font-size: 2em;
+      font-size: 2.5em;
+      margin-bottom: 20px;
     }
+
     p {
       font-size: 18px;
+      color: #555;
     }
+
     .success {
-      color: #4CAF50;
+      color: #4CAF50; 
+      font-weight: bold;
     }
+
     .error {
       color: #FF5733;
+      font-weight: bold;
     }
+
     .warning {
-      color: #FFD700;
+      color: #FFD700; 
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1 class="<%= statusType %>"><%= message %></h1>
-  <p><%= message %></p>
+  <div>
+    <h1 class="<%= statusType %>"><%= message %></h1>
+    <p><%= message %></p>
+  </div>
 </body>
 </html>
