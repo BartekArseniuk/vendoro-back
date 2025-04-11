@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
+const Session = require('../../models/Session');
 const { sendResetPasswordEmail } = require('../../services/emailService');
 const config = require('../../../config/config.json');
 const bcrypt = require('bcrypt');
@@ -73,7 +74,7 @@ exports.updatePassword = async (req, res) => {
 
         if (user.passwordChangedAt) {
             const tokenIssuedAt = new Date(decoded.iat * 1000);
-            if (user.passwordChangedAt > tokenIssuedAt) {
+            if (new Date(user.passwordChangedAt) > tokenIssuedAt) {
                 return res.status(400).json({ message: 'Token został unieważniony przez zmianę hasła' });
             }
         }
@@ -82,6 +83,10 @@ exports.updatePassword = async (req, res) => {
         user.password = hashedPassword;
         user.passwordChangedAt = new Date();
         await user.save();
+
+        await Session.destroy({
+            where: { userId: user.id }
+        });
 
         return res.status(200).json({ message: 'Hasło zostało zaktualizowane' });
     } catch (err) {
