@@ -61,9 +61,25 @@ const swaggerOptions = {
                 description: 'Endpointy odpowiedzialne za zarządzanie produktami',
             },
         ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                },
+            },
+        },
+        security: [
+            {
+                bearerAuth: [],
+            },
+        ],
     },
     apis: ['./src/routes/*.js'],
 };
+
+module.exports = swaggerOptions;
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 

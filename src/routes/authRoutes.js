@@ -6,6 +6,8 @@ const loginController = require('../controllers/auth/loginController');
 const verifyEmailController = require('../controllers/auth/verifyEmailController');
 const resetPasswordController = require('../controllers/auth/resetPasswordController');
 
+const { verifySession } = require('../middleware/sessionMiddleware');
+
 /**
  * @swagger
  * /api/users/register:
@@ -171,5 +173,58 @@ router.post('/reset-password', resetPasswordController.requestPasswordReset);
 router.post('/update-password', resetPasswordController.updatePassword);
 
 router.get('/reset-password/:token', resetPasswordController.renderResetPasswordForm);
+
+/**
+ * @swagger
+ * /api/users/logout:
+ *   post:
+ *     summary: Wylogowanie użytkownika
+ *     tags: 
+ *       - Authorization
+ *     description: Wylogowuje użytkownika poprzez usunięcie sesji z bazy danych
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Wylogowano pomyślnie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Wylogowano pomyślnie
+ *       401:
+ *         description: Brak autoryzacji lub nieprawidłowy token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Brak aktywnej sesji
+ *       500:
+ *         description: Błąd serwera podczas wylogowywania
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Błąd podczas wylogowywania
+ */
+router.post('/logout', verifySession, loginController.logoutUser);
 
 module.exports = router;

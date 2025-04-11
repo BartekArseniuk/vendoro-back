@@ -36,4 +36,11 @@ const User = sequelize.define('User', {
   timestamps: true,
 });
 
+User.associate = function (models) {
+  User.hasMany(models.Session, {
+    foreignKey: 'userId',
+    as: 'sessions'
+  });
+};
+
 module.exports = User;
