@@ -40,4 +40,35 @@ const { verifySession } = require('../middleware/sessionMiddleware');
  */
 router.get('/me', verifySession, userController.getCurrentUser);
 
+
+/**
+ * @swagger
+ * /api/users/me:
+ *   delete:
+ *     summary: Usunięcie konta użytkownika
+ *     tags: 
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Konto zostało pomyślnie usunięte
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Brak ważnej sesji lub tokenu
+ *       404:
+ *         description: Nie znaleziono użytkownika
+ *       500:
+ *         description: Błąd serwera podczas usuwania konta
+ */
+router.delete('/me', verifySession, userController.deleteUser);
+
 module.exports = router;
