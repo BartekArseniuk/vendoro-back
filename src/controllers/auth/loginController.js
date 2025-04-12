@@ -43,13 +43,7 @@ exports.loginUser = async (req, res) => {
 
     return res.status(200).json({
       message: 'Logowanie przebiegło pomyślnie',
-      token: token,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName
-      }
+      token: token
     });
   } catch (err) {
     console.error(err);

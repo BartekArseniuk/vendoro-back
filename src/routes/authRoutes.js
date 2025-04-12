@@ -3,6 +3,7 @@ const path = require('path');
 const router = express.Router();
 const registerController = require('../controllers/auth/registerController');
 const loginController = require('../controllers/auth/loginController');
+const userController = require('../controllers/auth/userController');
 const verifyEmailController = require('../controllers/auth/verifyEmailController');
 const resetPasswordController = require('../controllers/auth/resetPasswordController');
 
@@ -226,5 +227,40 @@ router.get('/reset-password/:token', resetPasswordController.renderResetPassword
  *                   example: Błąd podczas wylogowywania
  */
 router.post('/logout', verifySession, loginController.logoutUser);
+
+/**
+ * @swagger
+ * /api/users/me:
+ *   get:
+ *     summary: Pobranie danych aktualnie zalogowanego użytkownika
+ *     tags: 
+ *       - Authorization
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dane zalogowanego użytkownika
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     email:
+ *                       type: string
+ *                     firstName:
+ *                       type: string
+ *                     lastName:
+ *                       type: string
+ *       401:
+ *         description: Brak ważnej sesji lub tokenu
+ */
+router.get('/me', verifySession, userController.getCurrentUser);
 
 module.exports = router;
