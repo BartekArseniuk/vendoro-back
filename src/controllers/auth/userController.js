@@ -17,7 +17,8 @@ exports.getCurrentUser = async (req, res) => {
                 id: user.id,
                 email: user.email,
                 firstName: user.firstName,
-                lastName: user.lastName
+                lastName: user.lastName,
+                avatar: user.avatar,
             }
         });
     } catch (err) {
