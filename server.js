@@ -6,6 +6,7 @@ const config = require('./config/config.json');
 const path = require('path');
 
 const authRoutes = require('./src/routes/authRoutes');
+const userRoutes = require('./src/routes/userRoutes');
 const categoryRoutes = require('./src/routes/categoryRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 
@@ -48,10 +49,10 @@ const swaggerOptions = {
                 name: 'Authorization',
                 description: 'Endpointy odpowiedzialne za rejestrację i logowanie użytkowników',
             },
-            // {
-            //     name: 'Users',
-            //     description: 'Endpointy odpowiedzialne za zarządzanie użytkownikami',
-            // },
+            {
+                name: 'Users',
+                description: 'Endpointy odpowiedzialne za zarządzanie użytkownikami',
+            },
             {
                 name: 'Categories',
                 description: 'Endpointy odpowiedzialne za zarządzanie kategoriami',
@@ -92,6 +93,7 @@ const options = {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, options));
 
 app.use('/api/users', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 
