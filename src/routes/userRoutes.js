@@ -71,4 +71,53 @@ router.get('/me', verifySession, userController.getCurrentUser);
  */
 router.delete('/me', verifySession, userController.deleteUser);
 
+/**
+ * @swagger
+ * /api/users/me:
+ *   put:
+ *     summary: Aktualizacja danych użytkownika
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Dane zaktualizowane pomyślnie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Nieprawidłowe dane wejściowe
+ *       401:
+ *         description: Brak ważnej sesji lub tokenu
+ *       404:
+ *         description: Nie znaleziono użytkownika
+ *       500:
+ *         description: Błąd serwera
+ */
+router.put('/me', verifySession, userController.updateUser);
+
 module.exports = router;
