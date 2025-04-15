@@ -29,6 +29,7 @@ exports.registerUser = async (req, res) => {
       firstName,
       lastName,
       email,
+      phone: null,
       password: hashedPassword,
       isVerified: false,
     });

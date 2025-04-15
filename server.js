@@ -14,6 +14,8 @@ dotenv.config();
 
 const app = express();
 
+app.use(express.json({ limit: '10mb' }));
+
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -26,7 +28,6 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
 

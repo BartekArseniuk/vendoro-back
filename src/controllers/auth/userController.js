@@ -21,6 +21,7 @@ exports.getCurrentUser = async (req, res) => {
             user: {
                 id: user.id,
                 email: user.email,
+                phone: user.phone,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 avatar: user.avatar,
@@ -65,7 +66,7 @@ exports.deleteUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const user = req.user;
-        const { firstName, lastName, email, password, avatar } = req.body;
+        const { firstName, lastName, email, phone, password, avatar } = req.body;
 
         if (!user) {
             return res.status(404).json({
@@ -75,11 +76,11 @@ exports.updateUser = async (req, res) => {
         }
 
         const updates = {};
-        let emailChanged = false;
 
         if (firstName) updates.firstName = firstName;
         if (lastName) updates.lastName = lastName;
         if (avatar) updates.avatar = avatar;
+        if (phone) updates.phone = phone;
 
         if (email && email !== user.email) {
             const existingUser = await User.findOne({ where: { email } });
@@ -88,7 +89,9 @@ exports.updateUser = async (req, res) => {
             }
             updates.email = email;
             updates.isVerified = false;
-            emailChanged = true;
+
+            const verificationToken = jwt.sign({ id: user.id }, config.development.JWT_SECRET, { expiresIn: '24h' });
+            await sendVerificationEmail(email, verificationToken);
         }
 
         if (password) {
@@ -108,16 +111,17 @@ exports.updateUser = async (req, res) => {
 
         await User.update(updates, { where: { id: user.id } });
 
-        if (emailChanged) {
-            await Session.destroy({ where: { userId: user.id } });
-
-            const verificationToken = jwt.sign({ id: user.id }, config.development.JWT_SECRET, { expiresIn: '24h' });
-            await sendVerificationEmail(email, verificationToken);
-        }
+        const updatedUser = await User.findOne({ where: { id: user.id } });
 
         return res.status(200).json({
             success: true,
-            message: 'Dane użytkownika zostały zaktualizowane'
+            message: 'Dane użytkownika zostały zaktualizowane',
+            user: {
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
+                phone: updatedUser.phone,
+                avatar: updatedUser.avatar,
+            }
         });
     } catch (err) {
         console.error('Błąd przy aktualizacji użytkownika:', err);
