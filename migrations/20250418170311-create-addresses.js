@@ -36,7 +36,7 @@ module.exports = {
       type: {
         type: Sequelize.ENUM('shipping', 'billing', 'both'),
         allowNull: false,
-        defaultValue: 'both'
+        defaultValue: 'billing'
       },
       isDefault: {
         type: Sequelize.BOOLEAN,
