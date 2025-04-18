@@ -1,8 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('../../../config/config.json');
-const User = require('../../models/User');
-const Session = require('../../models/Session');
+const { User } = require('../../models');
+const { Session } = require('../../models');
 
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body;

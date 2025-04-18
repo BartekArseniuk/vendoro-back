@@ -1,10 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require('../../config/config.json');
-const Session = require('../models/Session');
-const User = require('../models/User');
-
-User.associate({ Session });
-Session.associate({ User });
+const { Session, User } = require('../models'); // Zmieniamy import!
 
 const verifySession = async (req, res, next) => {
     try {

@@ -1,9 +1,9 @@
-const User = require('../../models/User');
-const Session = require('../../models/Session');
+const { User, Address, Session } = require('../models');
+const sequelize = require('../../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { sendVerificationEmail } = require('../../services/emailService');
-const config = require('../../../config/config.json');
+const { sendVerificationEmail } = require('../services/emailService');
+const config = require('../../config/config.json');
 
 exports.getCurrentUser = async (req, res) => {
     try {
@@ -16,15 +16,33 @@ exports.getCurrentUser = async (req, res) => {
             });
         }
 
+        // Pobierz użytkownika wraz z adresami
+        const userWithAddresses = await User.findByPk(user.id, {
+            attributes: ['id', 'email', 'phone', 'firstName', 'lastName', 'avatar', 'isVerified'],
+            include: [{
+                model: Address,
+                as: 'addresses',
+                attributes: ['id', 'street', 'houseNumber', 'city', 'postalCode', 'type', 'isDefault'],
+                order: [
+                    [sequelize.literal("CASE WHEN type = 'billing' THEN 0 WHEN type = 'both' THEN 1 ELSE 2 END"), 'ASC'],
+                    ['isDefault', 'DESC'],
+                    ['city', 'ASC'],
+                    ['street', 'ASC']
+                ]
+            }]
+        });
+
         return res.status(200).json({
             success: true,
             user: {
-                id: user.id,
-                email: user.email,
-                phone: user.phone,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                avatar: user.avatar,
+                id: userWithAddresses.id,
+                email: userWithAddresses.email,
+                phone: userWithAddresses.phone,
+                firstName: userWithAddresses.firstName,
+                lastName: userWithAddresses.lastName,
+                avatar: userWithAddresses.avatar,
+                isVerified: userWithAddresses.isVerified,
+                addresses: userWithAddresses.addresses || []
             }
         });
     } catch (err) {

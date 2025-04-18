@@ -7,6 +7,7 @@ const path = require('path');
 
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
+const addressRoutes = require('./src/routes/addressRoutes');
 const categoryRoutes = require('./src/routes/categoryRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 
@@ -55,6 +56,10 @@ const swaggerOptions = {
                 description: 'Endpointy odpowiedzialne za zarządzanie użytkownikami',
             },
             {
+                name: 'Addresses',
+                description: 'Endpointy odpowiedzialne za zarządzanie adresami użytkowników',
+            },
+            {
                 name: 'Categories',
                 description: 'Endpointy odpowiedzialne za zarządzanie kategoriami',
             },
@@ -95,6 +100,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, options));
 
 app.use('/api/users', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/users/addresses', addressRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 
