@@ -1,5 +1,4 @@
 const { Address } = require('../models');
-const { verifySession } = require('../middleware/sessionMiddleware');
 
 exports.addAddress = async (req, res) => {
     try {
@@ -13,7 +12,16 @@ exports.addAddress = async (req, res) => {
             });
         }
 
-        if (isDefault) {
+        let finalIsDefault = false;
+        if (type === 'shipping' || type === 'both') {
+            finalIsDefault = isDefault || true;
+        }
+
+        if (type !== 'shipping' && type !== 'both') {
+            finalIsDefault = false;
+        }
+
+        if (finalIsDefault) {
             await Address.update(
                 { isDefault: false },
                 { where: { userId, isDefault: true } }
@@ -26,8 +34,8 @@ exports.addAddress = async (req, res) => {
             houseNumber,
             city,
             postalCode,
-            type: type || 'both',
-            isDefault: isDefault || false
+            type: type || 'both', 
+            isDefault: finalIsDefault || false
         });
 
         return res.status(201).json({
@@ -59,7 +67,16 @@ exports.updateAddress = async (req, res) => {
             });
         }
 
-        if (isDefault) {
+        let finalIsDefault = false;
+        if (type === 'shipping' || type === 'both') {
+            finalIsDefault = isDefault || true;
+        }
+
+        if (type !== 'shipping' && type !== 'both') {
+            finalIsDefault = false;
+        }
+
+        if (finalIsDefault) {
             await Address.update(
                 { isDefault: false },
                 { where: { userId, isDefault: true } }
@@ -72,7 +89,7 @@ exports.updateAddress = async (req, res) => {
             city: city || address.city,
             postalCode: postalCode || address.postalCode,
             type: type || address.type,
-            isDefault: isDefault !== undefined ? isDefault : address.isDefault
+            isDefault: finalIsDefault !== undefined ? finalIsDefault : address.isDefault
         };
 
         await Address.update(updates, { where: { id, userId } });

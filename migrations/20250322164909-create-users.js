@@ -12,7 +12,7 @@ module.exports = {
       avatar: {
         type: Sequelize.TEXT('long'),
         allowNull: true
-      },         
+      },
       firstName: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -39,6 +39,11 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
+      },
+      firstLogin: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
       passwordChangedAt: {
         type: Sequelize.DATE,

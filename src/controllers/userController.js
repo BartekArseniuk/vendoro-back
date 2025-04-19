@@ -18,7 +18,7 @@ exports.getCurrentUser = async (req, res) => {
 
         // Pobierz użytkownika wraz z adresami
         const userWithAddresses = await User.findByPk(user.id, {
-            attributes: ['id', 'email', 'phone', 'firstName', 'lastName', 'avatar', 'isVerified'],
+            attributes: ['id', 'email', 'phone', 'firstName', 'lastName', 'avatar', 'isVerified', 'firstLogin'],
             include: [{
                 model: Address,
                 as: 'addresses',
@@ -35,13 +35,13 @@ exports.getCurrentUser = async (req, res) => {
         return res.status(200).json({
             success: true,
             user: {
-                id: userWithAddresses.id,
                 email: userWithAddresses.email,
                 phone: userWithAddresses.phone,
                 firstName: userWithAddresses.firstName,
                 lastName: userWithAddresses.lastName,
                 avatar: userWithAddresses.avatar,
                 isVerified: userWithAddresses.isVerified,
+                firstLogin: userWithAddresses.firstLogin,
                 addresses: userWithAddresses.addresses || []
             }
         });
@@ -84,7 +84,7 @@ exports.deleteUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const user = req.user;
-        const { firstName, lastName, email, phone, password, avatar } = req.body;
+        const { firstName, lastName, email, phone, password, avatar, firstLogin } = req.body;
 
         if (!user) {
             return res.status(404).json({
@@ -99,6 +99,9 @@ exports.updateUser = async (req, res) => {
         if (lastName) updates.lastName = lastName;
         if (avatar) updates.avatar = avatar;
         if (phone) updates.phone = phone;
+        if (firstLogin !== undefined) {
+            updates.firstLogin = firstLogin;
+        }
 
         if (email && email !== user.email) {
             const existingUser = await User.findOne({ where: { email } });
@@ -139,6 +142,7 @@ exports.updateUser = async (req, res) => {
                 lastName: updatedUser.lastName,
                 phone: updatedUser.phone,
                 avatar: updatedUser.avatar,
+                firstLogin: updatedUser.firstLogin 
             }
         });
     } catch (err) {

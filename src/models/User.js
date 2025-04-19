@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
   const fs = require('fs');
   const path = require('path');
-  
+
   const defaultAvatar = fs.readFileSync(path.join(__dirname, '../../config/defaultAvatar.txt'), 'utf8');
 
   const User = sequelize.define('User', {
@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT('long'),
       allowNull: true,
       defaultValue: defaultAvatar
-    },  
+    },
     firstName: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -40,6 +40,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: false,
     },
+    firstLogin: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
     passwordChangedAt: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -49,17 +54,17 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
   });
 
-  User.associate = function(models) {
+  User.associate = function (models) {
     User.hasMany(models.Session, {
       foreignKey: 'userId',
       as: 'sessions'
     });
-    
+
     User.hasMany(models.Address, {
       foreignKey: 'userId',
       as: 'addresses'
     });
-    
+
     User.hasMany(models.Product, {
       foreignKey: 'userId',
       as: 'products'
