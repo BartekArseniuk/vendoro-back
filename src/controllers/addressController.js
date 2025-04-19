@@ -124,7 +124,27 @@ exports.deleteAddress = async (req, res) => {
             });
         }
 
+        const wasDefault = address.isDefault;
+
         await address.destroy();
+        
+        if (wasDefault) {
+            let newDefault = await Address.findOne({
+                where: { userId, type: 'shipping' },
+                order: [['createdAt', 'DESC']]
+            });
+
+            if (!newDefault) {
+                newDefault = await Address.findOne({
+                    where: { userId, type: 'both' },
+                    order: [['createdAt', 'DESC']]
+                });
+            }
+
+            if (newDefault) {
+                await newDefault.update({ isDefault: true });
+            }
+        }
 
         return res.status(200).json({
             success: true,
