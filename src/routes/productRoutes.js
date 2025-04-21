@@ -52,19 +52,51 @@ router.post('/create', ProductController.createProduct);
 
 /**
  * @swagger
- * /api/products/all:
+ * /api/products/user/{userId}:
  *   get:
- *     summary: Pobranie wszystkich produktów
+ *     summary: Pobranie produktów użytkownika
  *     tags:
  *       - Products
- *     description: Zwraca listę wszystkich produktów
+ *     description: Zwraca listę produktów dodanych przez danego użytkownika
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: ID użytkownika
+ *         schema:
+ *           type: integer
+ *           example: 1
  *     responses:
  *       200:
- *         description: Lista produktów
+ *         description: Lista produktów użytkownika
  *       500:
  *         description: Błąd przy pobieraniu produktów
  */
-router.get('/all', ProductController.getAllProducts);
+router.get('/user/:userId', ProductController.getProductsByUserId);
+
+/**
+ * @swagger
+ * /api/products/category/{categoryId}:
+ *   get:
+ *     summary: Pobranie produktów według kategorii
+ *     tags:
+ *       - Products
+ *     description: Zwraca listę produktów przypisanych do danej kategorii
+ *     parameters:
+ *       - in: path
+ *         name: categoryId
+ *         required: true
+ *         description: ID kategorii
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Lista produktów z danej kategorii
+ *       500:
+ *         description: Błąd przy pobieraniu produktów
+ */
+router.get('/category/:categoryId', ProductController.getProductsByCategoryId);
 
 /**
  * @swagger

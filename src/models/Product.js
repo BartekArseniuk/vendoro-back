@@ -16,35 +16,57 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    deliveryMethod: {
+      type: DataTypes.ENUM('pickup', 'delivery', 'both'),
+      allowNull: false,
+      defaultValue: 'both',
+    },
+    sharePhoneNumber: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    photo1: {
+      type: DataTypes.TEXT('long'),
+      allowNull: true,
+    },
+    photo2: {
+      type: DataTypes.TEXT('long'),
+      allowNull: true,
+    },
+    photo3: {
+      type: DataTypes.TEXT('long'),
+      allowNull: true,
+    },
+    photo4: {
+      type: DataTypes.TEXT('long'),
+      allowNull: true,
+    },
+    photo5: {
+      type: DataTypes.TEXT('long'),
+      allowNull: true,
+    },
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id'
-      }
     },
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'categories',
-        key: 'id'
-      }
-    }
+    },
   }, {
     tableName: 'products',
     timestamps: true,
   });
 
-  Product.associate = function(models) {
+  Product.associate = function (models) {
     Product.belongsTo(models.User, {
       foreignKey: 'userId',
-      as: 'user'
+      as: 'user',
     });
     Product.belongsTo(models.Category, {
       foreignKey: 'categoryId',
-      as: 'category'
+      as: 'category',
     });
   };
 

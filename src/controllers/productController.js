@@ -1,13 +1,25 @@
-const Product = require('../models/Product');
-const User = require('../models/User');
-const Category = require('../models/Category');
+const { Product, User, Category } = require('../models');
 
 exports.createProduct = async (req, res) => {
-    const { name, description, location, price, userId, categoryId } = req.body;
+    const {
+        name,
+        description,
+        location,
+        price,
+        deliveryMethod,
+        sharePhoneNumber,
+        photo1,
+        photo2,
+        photo3,
+        photo4,
+        photo5,
+        userId,
+        categoryId,
+    } = req.body;
 
     try {
-        if (!name || !location || !price || !userId || !categoryId) {
-            return res.status(400).json({ message: 'Wszystkie pola są wymagane' });
+        if (!name || !location || !price || !userId || !categoryId || !deliveryMethod) {
+            return res.status(400).json({ message: 'Wszystkie wymagane pola muszą być wypełnione' });
         }
 
         const user = await User.findByPk(userId);
@@ -25,6 +37,13 @@ exports.createProduct = async (req, res) => {
             description,
             location,
             price,
+            deliveryMethod,
+            sharePhoneNumber,
+            photo1,
+            photo2,
+            photo3,
+            photo4,
+            photo5,
             userId,
             categoryId,
         });
@@ -39,16 +58,35 @@ exports.createProduct = async (req, res) => {
     }
 };
 
-exports.getAllProducts = async (req, res) => {
+exports.getProductsByUserId = async (req, res) => {
+    const { userId } = req.params;
+
     try {
         const products = await Product.findAll({
+            where: { userId },
             include: ['user', 'category'],
         });
 
         return res.status(200).json(products);
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Błąd przy pobieraniu produktów' });
+        return res.status(500).json({ message: 'Błąd przy pobieraniu produktów użytkownika' });
+    }
+};
+
+exports.getProductsByCategoryId = async (req, res) => {
+    const { categoryId } = req.params;
+
+    try {
+        const products = await Product.findAll({
+            where: { categoryId },
+            include: ['user', 'category'],
+        });
+
+        return res.status(200).json(products);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd przy pobieraniu produktów dla tej kategorii' });
     }
 };
 
@@ -73,7 +111,21 @@ exports.getProductById = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
     const { id } = req.params;
-    const { name, description, location, price, userId, categoryId } = req.body;
+    const {
+        name,
+        description,
+        location,
+        price,
+        deliveryMethod,
+        sharePhoneNumber,
+        photo1,
+        photo2,
+        photo3,
+        photo4,
+        photo5,
+        userId,
+        categoryId,
+    } = req.body;
 
     try {
         const product = await Product.findByPk(id);
@@ -82,8 +134,8 @@ exports.updateProduct = async (req, res) => {
             return res.status(404).json({ message: 'Produkt nie znaleziony' });
         }
 
-        if (!name || !location || !price || !userId || !categoryId) {
-            return res.status(400).json({ message: 'Wszystkie pola są wymagane' });
+        if (!name || !location || !price || !userId || !categoryId || !deliveryMethod) {
+            return res.status(400).json({ message: 'Wszystkie wymagane pola muszą być wypełnione' });
         }
 
         const user = await User.findByPk(userId);
@@ -100,6 +152,13 @@ exports.updateProduct = async (req, res) => {
         product.description = description;
         product.location = location;
         product.price = price;
+        product.deliveryMethod = deliveryMethod;
+        product.sharePhoneNumber = sharePhoneNumber;
+        product.photo1 = photo1;
+        product.photo2 = photo2;
+        product.photo3 = photo3;
+        product.photo4 = photo4;
+        product.photo5 = photo5;
         product.userId = userId;
         product.categoryId = categoryId;
 

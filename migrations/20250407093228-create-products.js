@@ -24,6 +24,36 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      deliveryMethod: {
+        type: Sequelize.ENUM('pickup', 'delivery', 'both'),
+        allowNull: false,
+        defaultValue: 'both'
+      },
+      sharePhoneNumber: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+      photo1: {
+        type: Sequelize.TEXT('long'),
+        allowNull: true
+      },
+      photo2: {
+        type: Sequelize.TEXT('long'),
+        allowNull: true
+      },
+      photo3: {
+        type: Sequelize.TEXT('long'),
+        allowNull: true
+      },
+      photo4: {
+        type: Sequelize.TEXT('long'),
+        allowNull: true
+      },
+      photo5: {
+        type: Sequelize.TEXT('long'),
+        allowNull: true
+      },
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
