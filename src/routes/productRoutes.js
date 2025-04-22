@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const ProductController = require('../controllers/productController');
 
+const { verifySession } = require('../middleware/sessionMiddleware');
+
 /**
  * @swagger
  * /api/products/create:
@@ -22,6 +24,7 @@ const ProductController = require('../controllers/productController');
  *               - price
  *               - userId
  *               - categoryId
+ *               - deliveryMethod
  *             properties:
  *               name:
  *                 type: string
@@ -36,6 +39,27 @@ const ProductController = require('../controllers/productController');
  *                 type: number
  *                 format: float
  *                 example: 3000.00
+ *               deliveryMethod:
+ *                 type: string
+ *                 example: both
+ *               sharePhoneNumber:
+ *                 type: boolean
+ *                 example: true
+ *               photo1:
+ *                 type: string
+ *                 example: photo1.jpg
+ *               photo2:
+ *                 type: string
+ *                 example: photo2.jpg
+ *               photo3:
+ *                 type: string
+ *                 example: photo3.jpg
+ *               photo4:
+ *                 type: string
+ *                 example: photo4.jpg
+ *               photo5:
+ *                 type: string
+ *                 example: photo5.jpg
  *               userId:
  *                 type: integer
  *                 example: 1
@@ -47,8 +71,10 @@ const ProductController = require('../controllers/productController');
  *         description: Produkt został pomyślnie stworzony
  *       400:
  *         description: Błąd walidacji lub użytkownik/kategoria nie istnieje
+ *       500:
+ *         description: Błąd przy tworzeniu produktu
  */
-router.post('/create', ProductController.createProduct);
+router.post('/create', verifySession, ProductController.createProduct);
 
 /**
  * @swagger
@@ -146,6 +172,13 @@ router.get('/:id', ProductController.getProductById);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - location
+ *               - price
+ *               - userId
+ *               - categoryId
+ *               - deliveryMethod
  *             properties:
  *               name:
  *                 type: string
@@ -160,6 +193,27 @@ router.get('/:id', ProductController.getProductById);
  *                 type: number
  *                 format: float
  *                 example: 3500.00
+ *               deliveryMethod:
+ *                 type: string
+ *                 example: both
+ *               sharePhoneNumber:
+ *                 type: boolean
+ *                 example: false
+ *               photo1:
+ *                 type: string
+ *                 example: new_photo1.jpg
+ *               photo2:
+ *                 type: string
+ *                 example: new_photo2.jpg
+ *               photo3:
+ *                 type: string
+ *                 example: new_photo3.jpg
+ *               photo4:
+ *                 type: string
+ *                 example: new_photo4.jpg
+ *               photo5:
+ *                 type: string
+ *                 example: new_photo5.jpg
  *               userId:
  *                 type: integer
  *                 example: 1
@@ -169,12 +223,14 @@ router.get('/:id', ProductController.getProductById);
  *     responses:
  *       200:
  *         description: Produkt został zaktualizowany
+ *       400:
+ *         description: Błąd walidacji
  *       404:
  *         description: Produkt nie znaleziony
  *       500:
  *         description: Błąd przy aktualizacji produktu
  */
-router.put('/:id', ProductController.updateProduct);
+router.put('/:id', verifySession, ProductController.updateProduct);
 
 /**
  * @swagger
@@ -200,6 +256,6 @@ router.put('/:id', ProductController.updateProduct);
  *       500:
  *         description: Błąd przy usuwaniu produktu
  */
-router.delete('/:id', ProductController.deleteProduct);
+router.delete('/:id', verifySession, ProductController.deleteProduct);
 
 module.exports = router;

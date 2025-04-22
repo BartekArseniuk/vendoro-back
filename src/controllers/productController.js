@@ -18,7 +18,7 @@ exports.createProduct = async (req, res) => {
     } = req.body;
 
     try {
-        if (!name || !location || !price || !userId || !categoryId || !deliveryMethod) {
+        if (!name || !description || !location || !price || !userId || !categoryId || !deliveryMethod) {
             return res.status(400).json({ message: 'Wszystkie wymagane pola muszą być wypełnione' });
         }
 
@@ -64,7 +64,6 @@ exports.getProductsByUserId = async (req, res) => {
     try {
         const products = await Product.findAll({
             where: { userId },
-            include: ['user', 'category'],
         });
 
         return res.status(200).json(products);
@@ -80,7 +79,6 @@ exports.getProductsByCategoryId = async (req, res) => {
     try {
         const products = await Product.findAll({
             where: { categoryId },
-            include: ['user', 'category'],
         });
 
         return res.status(200).json(products);

@@ -35,6 +35,7 @@ exports.getCurrentUser = async (req, res) => {
         return res.status(200).json({
             success: true,
             user: {
+                id: userWithAddresses.id,
                 email: userWithAddresses.email,
                 phone: userWithAddresses.phone,
                 firstName: userWithAddresses.firstName,
