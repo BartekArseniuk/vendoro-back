@@ -39,6 +39,9 @@ const { verifySession } = require('../middleware/sessionMiddleware');
  *                 type: number
  *                 format: float
  *                 example: 3000.00
+ *               condition:
+ *                 type: string
+ *                 example: new
  *               deliveryMethod:
  *                 type: string
  *                 example: both
@@ -193,6 +196,9 @@ router.get('/:id', ProductController.getProductById);
  *                 type: number
  *                 format: float
  *                 example: 3500.00
+ *               condition:
+ *                 type: string
+ *                 example: new
  *               deliveryMethod:
  *                 type: string
  *                 example: both

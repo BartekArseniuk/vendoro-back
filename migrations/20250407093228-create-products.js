@@ -24,6 +24,11 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      condition: {
+        type: Sequelize.ENUM('new', 'used', 'refurbished', 'damaged'),
+        allowNull: false,
+        defaultValue: 'new'
+      },
       deliveryMethod: {
         type: Sequelize.ENUM('pickup', 'delivery', 'both'),
         allowNull: false,

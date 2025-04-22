@@ -16,6 +16,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    condition: {
+      type: DataTypes.ENUM('new', 'used', 'refurbished', 'damaged'),
+      allowNull: false,
+      defaultValue: 'new'
+    },
     deliveryMethod: {
       type: DataTypes.ENUM('pickup', 'delivery', 'both'),
       allowNull: false,

@@ -6,6 +6,7 @@ exports.createProduct = async (req, res) => {
         description,
         location,
         price,
+        condition,
         deliveryMethod,
         sharePhoneNumber,
         photo1,
@@ -18,7 +19,7 @@ exports.createProduct = async (req, res) => {
     } = req.body;
 
     try {
-        if (!name || !description || !location || !price || !userId || !categoryId || !deliveryMethod) {
+        if (!name || !description || !location || !price || !condition || !userId || !categoryId || !deliveryMethod) {
             return res.status(400).json({ message: 'Wszystkie wymagane pola muszą być wypełnione' });
         }
 
@@ -37,6 +38,7 @@ exports.createProduct = async (req, res) => {
             description,
             location,
             price,
+            condition,
             deliveryMethod,
             sharePhoneNumber,
             photo1,
@@ -114,6 +116,7 @@ exports.updateProduct = async (req, res) => {
         description,
         location,
         price,
+        condition,
         deliveryMethod,
         sharePhoneNumber,
         photo1,
@@ -150,6 +153,7 @@ exports.updateProduct = async (req, res) => {
         product.description = description;
         product.location = location;
         product.price = price;
+        product.condition = condition;
         product.deliveryMethod = deliveryMethod;
         product.sharePhoneNumber = sharePhoneNumber;
         product.photo1 = photo1;
