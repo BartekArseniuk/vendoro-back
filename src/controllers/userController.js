@@ -111,6 +111,7 @@ exports.updateUser = async (req, res) => {
             }
             updates.email = email;
             updates.isVerified = false;
+            await Session.destroy({ where: { userId: user.id } });
 
             const verificationToken = jwt.sign({ id: user.id }, config.development.JWT_SECRET, { expiresIn: '24h' });
             await sendVerificationEmail(email, verificationToken);
@@ -120,6 +121,8 @@ exports.updateUser = async (req, res) => {
             if (password.length < 8) {
                 return res.status(400).json({ message: 'Hasło musi mieć co najmniej 8 znaków' });
             }
+            
+            await Session.destroy({ where: { userId: user.id } });
             updates.password = await bcrypt.hash(password, 10);
             updates.passwordChangedAt = new Date();
         }
