@@ -81,6 +81,22 @@ router.post('/create', verifySession, ProductController.createProduct);
 
 /**
  * @swagger
+ * /api/products/latest:
+ *   get:
+ *     summary: Pobranie 5 najnowszych produktów
+ *     tags:
+ *       - Products
+ *     description: Zwraca 5 najnowszych produktów posortowanych malejąco według daty utworzenia
+ *     responses:
+ *       200:
+ *         description: Lista 5 najnowszych produktów
+ *       500:
+ *         description: Błąd przy pobieraniu najnowszych produktów
+ */
+router.get('/latest', ProductController.getLatestProducts);
+
+/**
+ * @swagger
  * /api/products/user/{userId}:
  *   get:
  *     summary: Pobranie produktów użytkownika

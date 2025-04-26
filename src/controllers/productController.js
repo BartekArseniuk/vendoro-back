@@ -60,6 +60,51 @@ exports.createProduct = async (req, res) => {
     }
 };
 
+exports.getLatestProducts = async (req, res) => {
+    try {
+        const products = await Product.findAll({
+            limit: 12,
+            order: [['createdAt', 'DESC']],
+            include: [
+                {
+                    model: User,
+                    attributes: ['avatar', 'firstName', 'lastName', 'email', 'phone'],
+                    as: 'user',
+                },
+                {
+                    model: Category,
+                    attributes: ['id', 'name', 'icon'],
+                    as: 'category',
+                }
+            ]
+        });
+
+        const formattedProducts = products.map(product => {
+            const formattedUser = {
+                avatar: product.user?.avatar,
+                firstName: product.user?.firstName,
+                lastName: product.user?.lastName,
+                email: product.user?.email,
+            };
+
+            if (product.sharePhoneNumber) {
+                formattedUser.phone = product.user?.phone;
+            }
+
+            return {
+                ...product.toJSON(),
+                user: formattedUser,
+                category: product.category,
+            };
+        });
+
+        return res.status(200).json(formattedProducts);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd przy pobieraniu najnowszych produktów' });
+    }
+};
+
 exports.getProductsByUserId = async (req, res) => {
     const { userId } = req.params;
 
