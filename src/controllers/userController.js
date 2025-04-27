@@ -18,7 +18,7 @@ exports.getCurrentUser = async (req, res) => {
 
         // Pobierz użytkownika wraz z adresami
         const userWithAddresses = await User.findByPk(user.id, {
-            attributes: ['id', 'email', 'phone', 'firstName', 'lastName', 'avatar', 'isVerified', 'firstLogin'],
+            attributes: ['id', 'email', 'phone', 'firstName', 'lastName', 'avatar', 'isVerified', 'firstLogin', 'createdAt'],
             include: [{
                 model: Address,
                 as: 'addresses',
@@ -43,6 +43,7 @@ exports.getCurrentUser = async (req, res) => {
                 avatar: userWithAddresses.avatar,
                 isVerified: userWithAddresses.isVerified,
                 firstLogin: userWithAddresses.firstLogin,
+                createdAt: userWithAddresses.createdAt,
                 addresses: userWithAddresses.addresses || []
             }
         });

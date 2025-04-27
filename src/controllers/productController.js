@@ -1,5 +1,104 @@
 const { Product, User, Category } = require('../models');
 
+exports.getLatestProducts = async (req, res) => {
+    try {
+        const products = await Product.findAll({
+            attributes: ['id', 'name', 'description', 'price', 'photo1'],
+            limit: 12,
+            order: [['createdAt', 'DESC']]
+        });
+
+        return res.status(200).json(products);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd przy pobieraniu najnowszych produktów' });
+    }
+};
+
+exports.getProductsByUserId = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const products = await Product.findAll({
+            where: { userId },
+        });
+
+        return res.status(200).json(products);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd przy pobieraniu produktów użytkownika' });
+    }
+};
+
+exports.getProductsByCategoryId = async (req, res) => {
+    const { categoryId } = req.params;
+
+    try {
+        const products = await Product.findAll({
+            where: { categoryId },
+        });
+
+        return res.status(200).json(products);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd przy pobieraniu produktów dla tej kategorii' });
+    }
+};
+
+exports.getProductById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Najpierw pobierz produkt bez danych użytkownika
+        const product = await Product.findByPk(id, {
+            include: [
+                {
+                    model: Category,
+                    attributes: ['id', 'name', 'icon'],
+                    as: 'category',
+                }
+            ]
+        });
+
+        if (!product) {
+            return res.status(404).json({ message: 'Produkt nie znaleziony' });
+        }
+
+        // Teraz pobierz dane użytkownika tylko jeśli są potrzebne
+        let userData = null;
+        if (product.userId) {
+            const userAttributes = ['avatar', 'firstName', 'lastName', 'email', 'createdAt'];
+            if (product.sharePhoneNumber) {
+                userAttributes.push('phone');
+            }
+
+            const user = await User.findByPk(product.userId, {
+                attributes: userAttributes
+            });
+
+            userData = {
+                avatar: user?.avatar,
+                firstName: user?.firstName,
+                lastName: user?.lastName,
+                email: user?.email,
+                phone: product.sharePhoneNumber ? user?.phone : undefined,
+                createdAt: user?.createdAt
+            };
+        }
+
+        const formattedProduct = {
+            ...product.toJSON(),
+            user: userData,
+            category: product.category,
+        };
+
+        return res.status(200).json(formattedProduct);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd przy pobieraniu produktu' });
+    }
+};
+
 exports.createProduct = async (req, res) => {
     const {
         name,
@@ -57,100 +156,6 @@ exports.createProduct = async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy tworzeniu produktu' });
-    }
-};
-
-exports.getLatestProducts = async (req, res) => {
-    try {
-        const products = await Product.findAll({
-            limit: 12,
-            order: [['createdAt', 'DESC']],
-            include: [
-                {
-                    model: User,
-                    attributes: ['avatar', 'firstName', 'lastName', 'email', 'phone'],
-                    as: 'user',
-                },
-                {
-                    model: Category,
-                    attributes: ['id', 'name', 'icon'],
-                    as: 'category',
-                }
-            ]
-        });
-
-        const formattedProducts = products.map(product => {
-            const formattedUser = {
-                avatar: product.user?.avatar,
-                firstName: product.user?.firstName,
-                lastName: product.user?.lastName,
-                email: product.user?.email,
-            };
-
-            if (product.sharePhoneNumber) {
-                formattedUser.phone = product.user?.phone;
-            }
-
-            return {
-                ...product.toJSON(),
-                user: formattedUser,
-                category: product.category,
-            };
-        });
-
-        return res.status(200).json(formattedProducts);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Błąd przy pobieraniu najnowszych produktów' });
-    }
-};
-
-exports.getProductsByUserId = async (req, res) => {
-    const { userId } = req.params;
-
-    try {
-        const products = await Product.findAll({
-            where: { userId },
-        });
-
-        return res.status(200).json(products);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Błąd przy pobieraniu produktów użytkownika' });
-    }
-};
-
-exports.getProductsByCategoryId = async (req, res) => {
-    const { categoryId } = req.params;
-
-    try {
-        const products = await Product.findAll({
-            where: { categoryId },
-        });
-
-        return res.status(200).json(products);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Błąd przy pobieraniu produktów dla tej kategorii' });
-    }
-};
-
-exports.getProductById = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const product = await Product.findByPk(id, {
-            include: ['user', 'category'],
-        });
-
-        if (!product) {
-            return res.status(404).json({ message: 'Produkt nie znaleziony' });
-        }
-
-        return res.status(200).json(product);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Błąd przy pobieraniu produktu' });
     }
 };
 
