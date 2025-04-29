@@ -5,6 +5,9 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const config = require('./config/config.json');
 const path = require('path');
 
+const passport = require('passport');
+require('./config/passport');
+
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const addressRoutes = require('./src/routes/addressRoutes');
@@ -16,6 +19,8 @@ dotenv.config();
 const app = express();
 
 app.use(express.json({ limit: '10mb' }));
+
+app.use(passport.initialize());
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');

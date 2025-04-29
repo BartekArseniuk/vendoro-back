@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const router = express.Router();
+const passport = require('passport');
 const registerController = require('../controllers/auth/registerController');
 const loginController = require('../controllers/auth/loginController');
 const verifyEmailController = require('../controllers/auth/verifyEmailController');
@@ -79,6 +80,13 @@ router.post('/register', registerController.registerUser);
  *         description: Nieprawidłowy email lub hasło
  */
 router.post('/login', loginController.loginUser);
+
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/' }),
+  loginController.loginWithGoogle
+);
 
 /**
  * @swagger

@@ -18,7 +18,7 @@ exports.getCurrentUser = async (req, res) => {
 
         // Pobierz użytkownika wraz z adresami
         const userWithAddresses = await User.findByPk(user.id, {
-            attributes: ['id', 'email', 'phone', 'firstName', 'lastName', 'avatar', 'isVerified', 'firstLogin', 'createdAt'],
+            attributes: ['id', 'email', 'phone', 'firstName', 'lastName', 'avatar', 'isVerified', 'firstLogin', 'password', 'createdAt'],
             include: [{
                 model: Address,
                 as: 'addresses',
@@ -43,6 +43,7 @@ exports.getCurrentUser = async (req, res) => {
                 avatar: userWithAddresses.avatar,
                 isVerified: userWithAddresses.isVerified,
                 firstLogin: userWithAddresses.firstLogin,
+                password: userWithAddresses.password,
                 createdAt: userWithAddresses.createdAt,
                 addresses: userWithAddresses.addresses || []
             }
@@ -92,6 +93,13 @@ exports.updateUser = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: 'Nie znaleziono użytkownika'
+            });
+        }
+
+        if (password === null || password === '') {
+            return res.status(400).json({
+                success: false,
+                message: 'Nie można zaktualizować e-maila, avatara ani hasła, ponieważ nastąpiło logowanie przez Google. Proszę użyć opcji logowania przez Google.'
             });
         }
 

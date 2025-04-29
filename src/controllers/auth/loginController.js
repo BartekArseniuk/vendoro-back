@@ -51,6 +51,35 @@ exports.loginUser = async (req, res) => {
   }
 };
 
+exports.loginWithGoogle = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      config.development.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await Session.create({
+      userId: user.id,
+      token: token,
+      expiresAt: expiresAt
+    });
+
+    const CLIENT_URL = config.development.FRONTEND_URL;
+
+    return res.redirect(`${CLIENT_URL}/auth/google/callback?token=${token}`);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Błąd podczas logowania przez Google' });
+  }
+};
+
 exports.logoutUser = async (req, res) => {
   try {
     if (!req.session) {

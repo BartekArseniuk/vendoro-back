@@ -33,7 +33,7 @@ module.exports = {
       },
       password: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       isVerified: {
         type: Sequelize.BOOLEAN,
