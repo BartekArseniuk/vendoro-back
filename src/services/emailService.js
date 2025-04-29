@@ -4,7 +4,7 @@ const path = require('path');
 const config = require('../../config/config.json');
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.wp.pl',
+  host: 'smtp.gmail.com',
   port: 465,
   secure: true,
   auth: {
