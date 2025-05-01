@@ -28,6 +28,35 @@ exports.getLatestProducts = async (req, res) => {
     }
 };
 
+exports.getLikedProducts = async (req, res) => {
+    const userId = req.user?.id || req.session.userId;
+
+    if (!userId) {
+        return res.status(401).json({ message: 'Nieautoryzowany dostęp' });
+    }
+
+    try {
+        const likedProductLinks = await ProductLike.findAll({
+            where: { userId },
+            attributes: ['productId'],
+        });
+
+        const productIds = likedProductLinks.map(like => like.productId);
+
+        const likedProducts = await Product.findAll({
+            where: { id: productIds },
+            attributes: ['id', 'name', 'description', 'price', 'photo1'],
+        });
+
+        const productsWithLikes = await addLikesToProducts(likedProducts);
+
+        return res.status(200).json(productsWithLikes);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd przy pobieraniu polubionych produktów' });
+    }
+};
+
 exports.getProductsByUserId = async (req, res) => {
     const { userId } = req.params;
 

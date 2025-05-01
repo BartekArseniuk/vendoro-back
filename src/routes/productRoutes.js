@@ -6,94 +6,37 @@ const { verifySession } = require('../middleware/sessionMiddleware');
 
 /**
  * @swagger
- * /api/products/create:
- *   post:
- *     summary: Tworzenie nowego produktu
- *     tags:
- *       - Products
- *     description: Tworzy nowy produkt w systemie
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - name
- *               - location
- *               - price
- *               - userId
- *               - categoryId
- *               - deliveryMethod
- *             properties:
- *               name:
- *                 type: string
- *                 example: Laptop
- *               description:
- *                 type: string
- *                 example: Nowoczesny laptop gamingowy
- *               location:
- *                 type: string
- *                 example: Warszawa
- *               price:
- *                 type: number
- *                 format: float
- *                 example: 3000.00
- *               condition:
- *                 type: string
- *                 example: new
- *               deliveryMethod:
- *                 type: string
- *                 example: both
- *               sharePhoneNumber:
- *                 type: boolean
- *                 example: true
- *               photo1:
- *                 type: string
- *                 example: photo1.jpg
- *               photo2:
- *                 type: string
- *                 example: photo2.jpg
- *               photo3:
- *                 type: string
- *                 example: photo3.jpg
- *               photo4:
- *                 type: string
- *                 example: photo4.jpg
- *               photo5:
- *                 type: string
- *                 example: photo5.jpg
- *               userId:
- *                 type: integer
- *                 example: 1
- *               categoryId:
- *                 type: integer
- *                 example: 1
- *     responses:
- *       201:
- *         description: Produkt został pomyślnie stworzony
- *       400:
- *         description: Błąd walidacji lub użytkownik/kategoria nie istnieje
- *       500:
- *         description: Błąd przy tworzeniu produktu
- */
-router.post('/create', verifySession, ProductController.createProduct);
-
-/**
- * @swagger
  * /api/products/latest:
  *   get:
- *     summary: Pobranie 5 najnowszych produktów
+ *     summary: Pobranie 12 najnowszych produktów
  *     tags:
  *       - Products
- *     description: Zwraca 5 najnowszych produktów posortowanych malejąco według daty utworzenia
+ *     description: Zwraca 12 najnowszych produktów posortowanych malejąco według daty utworzenia
  *     responses:
  *       200:
- *         description: Lista 5 najnowszych produktów
+ *         description: Lista 12 najnowszych produktów
  *       500:
  *         description: Błąd przy pobieraniu najnowszych produktów
  */
 router.get('/latest', ProductController.getLatestProducts);
+
+/**
+ * @swagger
+ * /api/products/liked:
+ *   get:
+ *     summary: Pobranie produktów polubionych przez zalogowanego użytkownika
+ *     tags:
+ *       - Products
+ *     description: Zwraca listę produktów, które użytkownik polubił
+ *     responses:
+ *       200:
+ *         description: Lista polubionych produktów
+ *       401:
+ *         description: Nieautoryzowany dostęp
+ *       500:
+ *         description: Błąd przy pobieraniu polubionych produktów
+ */
+router.get('/liked', verifySession, ProductController.getLikedProducts);
 
 /**
  * @swagger
@@ -168,6 +111,81 @@ router.get('/category/:categoryId', ProductController.getProductsByCategoryId);
  *         description: Błąd przy pobieraniu produktu
  */
 router.get('/:id', ProductController.getProductById);
+
+/**
+ * @swagger
+ * /api/products/create:
+ *   post:
+ *     summary: Tworzenie nowego produktu
+ *     tags:
+ *       - Products
+ *     description: Tworzy nowy produkt w systemie
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - location
+ *               - price
+ *               - userId
+ *               - categoryId
+ *               - deliveryMethod
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Laptop
+ *               description:
+ *                 type: string
+ *                 example: Nowoczesny laptop gamingowy
+ *               location:
+ *                 type: string
+ *                 example: Warszawa
+ *               price:
+ *                 type: number
+ *                 format: float
+ *                 example: 3000.00
+ *               condition:
+ *                 type: string
+ *                 example: new
+ *               deliveryMethod:
+ *                 type: string
+ *                 example: both
+ *               sharePhoneNumber:
+ *                 type: boolean
+ *                 example: true
+ *               photo1:
+ *                 type: string
+ *                 example: photo1.jpg
+ *               photo2:
+ *                 type: string
+ *                 example: photo2.jpg
+ *               photo3:
+ *                 type: string
+ *                 example: photo3.jpg
+ *               photo4:
+ *                 type: string
+ *                 example: photo4.jpg
+ *               photo5:
+ *                 type: string
+ *                 example: photo5.jpg
+ *               userId:
+ *                 type: integer
+ *                 example: 1
+ *               categoryId:
+ *                 type: integer
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: Produkt został pomyślnie stworzony
+ *       400:
+ *         description: Błąd walidacji lub użytkownik/kategoria nie istnieje
+ *       500:
+ *         description: Błąd przy tworzeniu produktu
+ */
+router.post('/create', verifySession, ProductController.createProduct);
 
 /**
  * @swagger
