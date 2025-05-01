@@ -1,4 +1,16 @@
-const { Product, User, Category } = require('../models');
+const { Product, ProductLike, User, Category } = require('../models');
+
+const addLikesToProducts = async (products) => {
+    return Promise.all(products.map(async (product) => {
+        const likesCount = await ProductLike.count({
+            where: { productId: product.id }
+        });
+        return {
+            ...product.toJSON(),
+            likesCount
+        };
+    }));
+};
 
 exports.getLatestProducts = async (req, res) => {
     try {
@@ -8,7 +20,8 @@ exports.getLatestProducts = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
-        return res.status(200).json(products);
+        const productsWithLikes = await addLikesToProducts(products);
+        return res.status(200).json(productsWithLikes);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy pobieraniu najnowszych produktów' });
@@ -23,7 +36,8 @@ exports.getProductsByUserId = async (req, res) => {
             where: { userId },
         });
 
-        return res.status(200).json(products);
+        const productsWithLikes = await addLikesToProducts(products);
+        return res.status(200).json(productsWithLikes);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy pobieraniu produktów użytkownika' });
@@ -38,7 +52,8 @@ exports.getProductsByCategoryId = async (req, res) => {
             where: { categoryId },
         });
 
-        return res.status(200).json(products);
+        const productsWithLikes = await addLikesToProducts(products);
+        return res.status(200).json(productsWithLikes);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy pobieraniu produktów dla tej kategorii' });
@@ -49,7 +64,6 @@ exports.getProductById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        // Najpierw pobierz produkt bez danych użytkownika
         const product = await Product.findByPk(id, {
             include: [
                 {
@@ -64,7 +78,10 @@ exports.getProductById = async (req, res) => {
             return res.status(404).json({ message: 'Produkt nie znaleziony' });
         }
 
-        // Teraz pobierz dane użytkownika tylko jeśli są potrzebne
+        const likesCount = await ProductLike.count({
+            where: { productId: id }
+        });
+
         let userData = null;
         if (product.userId) {
             const userAttributes = ['avatar', 'firstName', 'lastName', 'email', 'createdAt'];
@@ -90,6 +107,7 @@ exports.getProductById = async (req, res) => {
             ...product.toJSON(),
             user: userData,
             category: product.category,
+            likesCount
         };
 
         return res.status(200).json(formattedProduct);
@@ -242,5 +260,31 @@ exports.deleteProduct = async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy usuwaniu produktu' });
+    }
+};
+
+exports.toggleLike = async (req, res) => {
+    const { productId } = req.params;
+    const userId = req.session.userId;
+
+    if (!userId) {
+        return res.status(401).json({ message: 'Nieautoryzowany dostęp' });
+    }
+
+    try {
+        const existingLike = await ProductLike.findOne({
+            where: { productId, userId },
+        });
+
+        if (existingLike) {
+            await existingLike.destroy();
+            return res.status(200).json({ liked: false, message: 'Polubienie usunięte' });
+        } else {
+            await ProductLike.create({ productId, userId });
+            return res.status(201).json({ liked: true, message: 'Produkt polubiony' });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd podczas zmiany stanu polubienia' });
     }
 };

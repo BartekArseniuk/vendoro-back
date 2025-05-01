@@ -280,4 +280,32 @@ router.put('/:id', verifySession, ProductController.updateProduct);
  */
 router.delete('/:id', verifySession, ProductController.deleteProduct);
 
+/**
+ * @swagger
+ * /api/products/{productId}/like:
+ *   post:
+ *     summary: Polubienie lub odlubienie produktu
+ *     tags:
+ *       - Products
+ *     description: Dodaje lub usuwa polubienie produktu przez zalogowanego użytkownika
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         description: ID produktu
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Polubienie usunięte
+ *       201:
+ *         description: Produkt polubiony
+ *       401:
+ *         description: Nieautoryzowany dostęp
+ *       500:
+ *         description: Błąd podczas zmiany stanu polubienia
+ */
+router.post('/:productId/like', verifySession, ProductController.toggleLike);
+
 module.exports = router;
