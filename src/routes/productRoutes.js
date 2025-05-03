@@ -6,6 +6,32 @@ const { verifySession } = require('../middleware/sessionMiddleware');
 
 /**
  * @swagger
+ * /api/products/search:
+ *   get:
+ *     summary: Wyszukiwanie produktów po nazwie lub opisie
+ *     tags:
+ *       - Products
+ *     description: Zwraca produkty, których nazwa lub opis zawierają podaną frazę
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         required: true
+ *         description: Fraza do wyszukania w nazwie lub opisie produktu
+ *         schema:
+ *           type: string
+ *           example: laptop
+ *     responses:
+ *       200:
+ *         description: Lista produktów pasujących do zapytania
+ *       400:
+ *         description: Brak frazy do wyszukania
+ *       500:
+ *         description: Błąd przy wyszukiwaniu produktów
+ */
+router.get('/search', ProductController.searchProducts);
+
+/**
+ * @swagger
  * /api/products/latest:
  *   get:
  *     summary: Pobranie 12 najnowszych produktów

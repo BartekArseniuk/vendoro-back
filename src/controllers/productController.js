@@ -1,4 +1,32 @@
 const { Product, ProductLike, User, Category } = require('../models');
+const { Op } = require('sequelize');
+
+exports.searchProducts = async (req, res) => {
+    const { query } = req.query;
+
+    if (!query) {
+        return res.status(400).json({ message: 'Brak frazy do wyszukania' });
+    }
+
+    try {
+        const products = await Product.findAll({
+            attributes: ['id', 'name', 'description', 'location', 'price', 'condition', 'deliveryMethod', 'photo1'],
+            where: {
+                [Op.or]: [
+                    { name: { [Op.like]: `%${query}%` } },
+                    { description: { [Op.like]: `%${query}%` } }
+                ]
+            },
+            order: [['createdAt', 'DESC']],
+        });
+
+        const productsWithLikes = await addLikesToProducts(products);
+        return res.status(200).json(productsWithLikes);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd przy wyszukiwaniu produktów' });
+    }
+};
 
 const addLikesToProducts = async (products) => {
     return Promise.all(products.map(async (product) => {
