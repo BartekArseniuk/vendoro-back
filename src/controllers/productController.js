@@ -78,7 +78,9 @@ exports.getProductsByCategoryId = async (req, res) => {
 
     try {
         const products = await Product.findAll({
+            attributes: ['id', 'name', 'description', 'price', 'photo1'],
             where: { categoryId },
+            order: [['createdAt', 'DESC']]
         });
 
         const productsWithLikes = await addLikesToProducts(products);
