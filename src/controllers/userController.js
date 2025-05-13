@@ -151,6 +151,7 @@ exports.updateUser = async (req, res) => {
             success: true,
             message: 'Dane użytkownika zostały zaktualizowane',
             user: {
+                email: updatedUser.email,
                 firstName: updatedUser.firstName,
                 lastName: updatedUser.lastName,
                 phone: updatedUser.phone,
