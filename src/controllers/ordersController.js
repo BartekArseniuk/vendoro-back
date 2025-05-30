@@ -35,6 +35,7 @@ exports.createOrder = async (req, res) => {
             shippingAddressId,
             wantInvoice,
             invoiceType,
+            privateInvoiceAddressId,
             companyName,
             companyNip,
             companyStreet,
@@ -55,6 +56,7 @@ exports.createOrder = async (req, res) => {
             shippingAddressId,
             wantInvoice,
             invoiceType,
+            privateInvoiceAddressId,
             companyName,
             companyNip,
             companyStreet,
@@ -187,6 +189,7 @@ exports.getOrder = async (req, res) => {
                 },
                 { model: User, as: 'user' },
                 { model: Address, as: 'shippingAddress' },
+                { model: Address, as: 'privateInvoiceAddress' },
             ],
         });
 

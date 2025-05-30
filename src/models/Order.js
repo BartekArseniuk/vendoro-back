@@ -21,7 +21,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-
     wantInvoice: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -29,6 +28,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     invoiceType: {
       type: DataTypes.ENUM('private', 'company'),
+      allowNull: true,
+    },
+    privateInvoiceAddressId: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     companyName: {
@@ -55,13 +58,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
-
     status: {
       type: DataTypes.ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled'),
       allowNull: false,
       defaultValue: 'pending',
     },
-
     productPrice: {
       type: DataTypes.FLOAT,
       allowNull: false,
@@ -79,10 +80,11 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
   });
 
-  Order.associate = function(models) {
+  Order.associate = function (models) {
     Order.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
     Order.belongsTo(models.Product, { foreignKey: 'productId', as: 'product' });
     Order.belongsTo(models.Address, { foreignKey: 'shippingAddressId', as: 'shippingAddress' });
+    Order.belongsTo(models.Address, { foreignKey: 'privateInvoiceAddressId', as: 'privateInvoiceAddress' });
     Order.hasOne(models.Payment, { foreignKey: 'orderId', as: 'payment' });
   };
 

@@ -40,6 +40,9 @@ const { verifySession } = require('../middleware/sessionMiddleware');
  *               shippingAddressId:
  *                 type: integer
  *                 example: 2
+ *               privateInvoiceAddressId:
+ *                 type: integer
+ *                 example: 3
  *               wantInvoice:
  *                 type: boolean
  *                 example: true

@@ -54,6 +54,15 @@ module.exports = {
         type: Sequelize.ENUM('private', 'company'),
         allowNull: true,
       },
+      privateInvoiceAddressId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'addresses',
+          key: 'id',
+        },
+        onDelete: 'SET NULL',
+      },
       companyName: {
         type: Sequelize.STRING,
         allowNull: true,
