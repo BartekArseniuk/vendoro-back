@@ -13,6 +13,7 @@ const userRoutes = require('./src/routes/userRoutes');
 const addressRoutes = require('./src/routes/addressRoutes');
 const categoryRoutes = require('./src/routes/categoryRoutes');
 const productRoutes = require('./src/routes/productRoutes');
+const orderRoutes = require('./src/routes/orderRoutes');
 
 dotenv.config();
 
@@ -72,6 +73,10 @@ const swaggerOptions = {
                 name: 'Products',
                 description: 'Endpointy odpowiedzialne za zarządzanie produktami',
             },
+            {
+                name: 'Orders',
+                description: 'Endpointy odpowiedzialne za zarządzanie zamówieniami',
+            },
         ],
         components: {
             securitySchemes: {
@@ -108,6 +113,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/users/addresses', addressRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

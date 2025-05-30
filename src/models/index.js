@@ -14,6 +14,8 @@ db.Product = require('./Product')(sequelize, Sequelize.DataTypes);
 db.ProductLike = require('./ProductLike')(sequelize, Sequelize.DataTypes);
 db.Session = require('./Session')(sequelize, Sequelize.DataTypes);
 db.Address = require('./Address')(sequelize, Sequelize.DataTypes);
+db.Order = require('./Order')(sequelize, Sequelize.DataTypes);
+db.Payment = require('./Payment')(sequelize, Sequelize.DataTypes);
 
 // Definicja relacji PO załadowaniu wszystkich modeli
 Object.keys(db).forEach(modelName => {
