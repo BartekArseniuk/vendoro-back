@@ -43,4 +43,19 @@ const sendResetPasswordEmail = async (userEmail, token) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendVerificationEmail, sendResetPasswordEmail };
+const sendGoogleWelcomeEmail = async (userEmail) => {
+  const htmlContent = await ejs.renderFile(
+    path.join(__dirname, '../views/googleWelcomeEmailTemplate.ejs')
+  );
+
+  const mailOptions = {
+    from: `"Vendoro" <${config.development.EMAIL_USER}>`,
+    to: userEmail,
+    subject: 'Witamy w Vendoro!',
+    html: htmlContent,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendVerificationEmail, sendResetPasswordEmail, sendGoogleWelcomeEmail };

@@ -4,6 +4,7 @@ const { User } = require('../src/models');
 const config = require('./config.json');
 const axios = require('axios');
 
+const { sendGoogleWelcomeEmail } = require('../src/services/emailService');
 
 passport.use(new GoogleStrategy({
     clientID: config.development.GOOGLE_CLIENT_ID,
@@ -36,6 +37,12 @@ passport.use(new GoogleStrategy({
                     isVerified: true,
                     password: null
                 });
+
+                try {
+                    await sendGoogleWelcomeEmail(email);
+                } catch (emailErr) {
+                    console.error('Błąd podczas wysyłania emaila powitalnego:', emailErr);
+                }
             }
 
             return done(null, user);
