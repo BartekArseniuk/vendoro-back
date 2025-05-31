@@ -1,10 +1,10 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { User } = require('../src/models');
-const config = require('./config.json');
+const { User } = require('../models');
+const config = require('../../config/config.json');
 const axios = require('axios');
 
-const { sendGoogleWelcomeEmail } = require('../src/services/emailService');
+const { sendGoogleWelcomeEmail } = require('./emailService');
 
 passport.use(new GoogleStrategy({
     clientID: config.development.GOOGLE_CLIENT_ID,

@@ -6,7 +6,7 @@ const config = require('./config/config.json');
 const path = require('path');
 
 const passport = require('passport');
-require('./config/passport');
+require('./src/services/passport');
 
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
