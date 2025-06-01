@@ -88,6 +88,8 @@ const { verifySession } = require('../middleware/sessionMiddleware');
  */
 router.post('/create', verifySession, OrdersController.createOrder);
 
+router.post('/payu-callback', OrdersController.payuCallback);
+
 /**
  * @swagger
  * /api/orders/{id}/status:
