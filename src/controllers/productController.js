@@ -12,6 +12,7 @@ exports.searchProducts = async (req, res) => {
         const products = await Product.findAll({
             attributes: ['id', 'name', 'description', 'location', 'price', 'condition', 'deliveryMethod', 'photo1'],
             where: {
+                isSold: false,
                 [Op.or]: [
                     { name: { [Op.like]: `%${query}%` } },
                     { description: { [Op.like]: `%${query}%` } }
@@ -44,6 +45,9 @@ exports.getLatestProducts = async (req, res) => {
     try {
         const products = await Product.findAll({
             attributes: ['id', 'name', 'description', 'price', 'photo1'],
+            where: {
+                isSold: false,
+            },
             limit: 12,
             order: [['createdAt', 'DESC']]
         });
@@ -73,7 +77,7 @@ exports.getLikedProducts = async (req, res) => {
 
         const likedProducts = await Product.findAll({
             where: { id: productIds },
-            attributes: ['id', 'name', 'description', 'price', 'photo1'],
+            attributes: ['id', 'name', 'description', 'price', 'photo1', 'isSold'],
         });
 
         const productsWithLikes = await addLikesToProducts(likedProducts);
@@ -107,7 +111,7 @@ exports.getProductsByCategoryId = async (req, res) => {
     try {
         const products = await Product.findAll({
             attributes: ['id', 'name', 'description', 'price', 'photo1'],
-            where: { categoryId },
+            where: { categoryId, isSold: false },
             order: [['createdAt', 'DESC']]
         });
 
@@ -192,6 +196,7 @@ exports.createProduct = async (req, res) => {
         photo5,
         userId,
         categoryId,
+        isSold
     } = req.body;
 
     try {
@@ -224,6 +229,7 @@ exports.createProduct = async (req, res) => {
             photo5,
             userId,
             categoryId,
+            isSold
         });
 
         return res.status(201).json({
@@ -253,6 +259,7 @@ exports.updateProduct = async (req, res) => {
         photo5,
         userId,
         categoryId,
+        isSold
     } = req.body;
 
     try {
@@ -290,6 +297,7 @@ exports.updateProduct = async (req, res) => {
         product.photo5 = photo5;
         product.userId = userId;
         product.categoryId = categoryId;
+        product.isSold = isSold;
 
         await product.save();
 

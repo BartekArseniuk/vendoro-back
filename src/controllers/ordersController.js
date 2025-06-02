@@ -48,6 +48,21 @@ exports.createOrder = async (req, res) => {
             paymentMethod,
         } = req.body;
 
+        const product = await Product.findByPk(productId);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Produkt nie znaleziony',
+            });
+        }
+
+        if (product.isSold) {
+            return res.status(400).json({
+                success: false,
+                message: 'Ten produkt został już sprzedany',
+            });
+        }
+
         const totalPrice = productPrice + shippingPrice;
 
         const order = await Order.create({
@@ -77,6 +92,10 @@ exports.createOrder = async (req, res) => {
             status: 'pending',
             amount: totalPrice,
         });
+
+        if (paymentMethod !== 'payu') {
+            await product.update({ isSold: true });
+        }
 
         if (paymentMethod === 'payu') {
             const orderWithDetails = await Order.findByPk(order.id, {
@@ -136,7 +155,13 @@ exports.payuCallback = async (req, res) => {
         const status = notification.order.status;
         const transactionId = notification.order.extOrderId || notification.order.orderId;
 
-        const order = await Order.findOne({ where: { orderNumber } });
+        const order = await Order.findOne({ 
+            where: { orderNumber },
+            include: [
+                { model: Product, as: 'product' }
+            ]
+        });
+        
         if (!order) {
             return res.status(404).send('Order not found');
         }
@@ -168,6 +193,10 @@ exports.payuCallback = async (req, res) => {
         if (paymentStatus === 'paid') {
             order.status = 'processing';
             await order.save();
+            
+            if (order.product) {
+                await order.product.update({ isSold: true });
+            }
         }
 
         res.status(200).send('OK');
@@ -182,12 +211,21 @@ exports.updateOrderStatus = async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const order = await Order.findByPk(id);
+        const order = await Order.findByPk(id, {
+            include: [
+                { model: Product, as: 'product' }
+            ]
+        });
+        
         if (!order) {
             return res.status(404).json({
                 success: false,
                 message: 'Zamówienie nie znalezione',
             });
+        }
+
+        if (status === 'cancelled' && order.product) {
+            await order.product.update({ isSold: false });
         }
 
         order.status = status;
