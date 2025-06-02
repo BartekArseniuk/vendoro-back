@@ -1,14 +1,14 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { User } = require('../models');
-const config = require('../../config/config.json');
+const config = require('../../config/config.json')[process.env.NODE_ENV || 'development'];
 const axios = require('axios');
 
 const { sendGoogleWelcomeEmail } = require('./emailService');
 
 passport.use(new GoogleStrategy({
-    clientID: config.development.GOOGLE_CLIENT_ID,
-    clientSecret: config.development.GOOGLE_CLIENT_SECRET,
+    clientID: config.GOOGLE.GOOGLE_CLIENT_ID,
+    clientSecret: config.GOOGLE.GOOGLE_CLIENT_SECRET,
     callbackURL: 'http://localhost:3000/api/users/google/callback'
 },
     async (accessToken, refreshToken, profile, done) => {
