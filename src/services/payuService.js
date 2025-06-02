@@ -51,7 +51,7 @@ async function createPayUOrder(order, payment) {
                 quantity: 1,
             },
         ],
-        continueUrl: `${config.PAYU.CONTINUE_URL}?orderNumber=${order.orderNumber}`
+        continueUrl: `${config.PAYU.CONTINUE_URL}/${order.id}`
     };
 
     const response = await axios.post(
