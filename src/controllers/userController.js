@@ -1,14 +1,63 @@
-const { User, Address, Session } = require('../models');
+const { User, Address, Session, Rating } = require('../models');
 const sequelize = require('../../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { sendVerificationEmail } = require('../services/emailService');
 const config = require('../../config/config.json');
 
+const getUserData = async (userId) => {
+    const userWithAddresses = await User.findByPk(userId, {
+        attributes: ['id', 'email', 'phone', 'firstName', 'lastName', 'avatar', 'isVerified', 'firstLogin', 'password', 'createdAt'],
+        include: [{
+            model: Address,
+            as: 'addresses',
+            attributes: ['id', 'street', 'houseNumber', 'city', 'postalCode', 'type', 'isDefault'],
+            order: [
+                [sequelize.literal("CASE WHEN type = 'billing' THEN 0 WHEN type = 'both' THEN 1 ELSE 2 END"), 'ASC'],
+                ['isDefault', 'DESC'],
+                ['city', 'ASC'],
+                ['street', 'ASC']
+            ]
+        }]
+    });
+
+    const ratingsStats = await Rating.findOne({
+        attributes: [
+            [sequelize.fn('AVG', sequelize.col('rating')), 'averageRating'],
+            [sequelize.fn('COUNT', sequelize.col('id')), 'totalRatings']
+        ],
+        where: { ratedUserId: userId },
+        raw: true
+    });
+
+    const averageRating = ratingsStats.averageRating !== null
+        ? parseFloat(ratingsStats.averageRating).toFixed(2)
+        : null;
+
+    const totalRatings = ratingsStats.totalRatings !== null
+        ? parseInt(ratingsStats.totalRatings, 10)
+        : 0;
+
+    return {
+        id: userWithAddresses.id,
+        email: userWithAddresses.email,
+        phone: userWithAddresses.phone,
+        firstName: userWithAddresses.firstName,
+        lastName: userWithAddresses.lastName,
+        avatar: userWithAddresses.avatar,
+        isVerified: userWithAddresses.isVerified,
+        firstLogin: userWithAddresses.firstLogin,
+        password: userWithAddresses.password,
+        createdAt: userWithAddresses.createdAt,
+        addresses: userWithAddresses.addresses || [],
+        averageRating,
+        totalRatings
+    };
+};
+
 exports.getCurrentUser = async (req, res) => {
     try {
         const user = req.user;
-
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -16,37 +65,11 @@ exports.getCurrentUser = async (req, res) => {
             });
         }
 
-        // Pobierz użytkownika wraz z adresami
-        const userWithAddresses = await User.findByPk(user.id, {
-            attributes: ['id', 'email', 'phone', 'firstName', 'lastName', 'avatar', 'isVerified', 'firstLogin', 'password', 'createdAt'],
-            include: [{
-                model: Address,
-                as: 'addresses',
-                attributes: ['id', 'street', 'houseNumber', 'city', 'postalCode', 'type', 'isDefault'],
-                order: [
-                    [sequelize.literal("CASE WHEN type = 'billing' THEN 0 WHEN type = 'both' THEN 1 ELSE 2 END"), 'ASC'],
-                    ['isDefault', 'DESC'],
-                    ['city', 'ASC'],
-                    ['street', 'ASC']
-                ]
-            }]
-        });
+        const userData = await getUserData(user.id);
 
         return res.status(200).json({
             success: true,
-            user: {
-                id: userWithAddresses.id,
-                email: userWithAddresses.email,
-                phone: userWithAddresses.phone,
-                firstName: userWithAddresses.firstName,
-                lastName: userWithAddresses.lastName,
-                avatar: userWithAddresses.avatar,
-                isVerified: userWithAddresses.isVerified,
-                firstLogin: userWithAddresses.firstLogin,
-                password: userWithAddresses.password,
-                createdAt: userWithAddresses.createdAt,
-                addresses: userWithAddresses.addresses || []
-            }
+            user: userData
         });
     } catch (err) {
         console.error('Błąd przy pobieraniu użytkownika:', err);
@@ -130,7 +153,7 @@ exports.updateUser = async (req, res) => {
             if (password.length < 8) {
                 return res.status(400).json({ message: 'Hasło musi mieć co najmniej 8 znaków' });
             }
-            
+
             await Session.destroy({ where: { userId: user.id } });
             updates.password = await bcrypt.hash(password, 10);
             updates.passwordChangedAt = new Date();
@@ -145,19 +168,12 @@ exports.updateUser = async (req, res) => {
 
         await User.update(updates, { where: { id: user.id } });
 
-        const updatedUser = await User.findOne({ where: { id: user.id } });
+        const userData = await getUserData(user.id);
 
         return res.status(200).json({
             success: true,
             message: 'Dane użytkownika zostały zaktualizowane',
-            user: {
-                email: updatedUser.email,
-                firstName: updatedUser.firstName,
-                lastName: updatedUser.lastName,
-                phone: updatedUser.phone,
-                avatar: updatedUser.avatar,
-                firstLogin: updatedUser.firstLogin 
-            }
+            user: userData
         });
     } catch (err) {
         console.error('Błąd przy aktualizacji użytkownika:', err);

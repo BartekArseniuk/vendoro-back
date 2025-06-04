@@ -14,6 +14,7 @@ const addressRoutes = require('./src/routes/addressRoutes');
 const categoryRoutes = require('./src/routes/categoryRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 const orderRoutes = require('./src/routes/orderRoutes');
+const ratingRoutes = require('./src/routes/ratingRoutes');
 
 dotenv.config();
 
@@ -60,6 +61,10 @@ const swaggerOptions = {
             {
                 name: 'Users',
                 description: 'Endpointy odpowiedzialne za zarządzanie użytkownikami',
+            },
+            {
+                name: 'Ratings',
+                description: 'Endpointy odpowiedzialne za zarządzanie ocenami użytkowników',
             },
             {
                 name: 'Addresses',
@@ -114,6 +119,7 @@ app.use('/api/users/addresses', addressRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/ratings', ratingRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
