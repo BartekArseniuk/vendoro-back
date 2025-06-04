@@ -58,4 +58,36 @@ const sendGoogleWelcomeEmail = async (userEmail) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendVerificationEmail, sendResetPasswordEmail, sendGoogleWelcomeEmail };
+const sendOrderConfirmationToCustomer = async (userEmail, orderDetails) => {
+  const htmlContent = await ejs.renderFile(
+    path.join(__dirname, '../views/orderCustomerEmailTemplate.ejs'),
+    { order: orderDetails }
+  );
+
+  const mailOptions = {
+    from: `"Vendoro" <${config.development.EMAIL_USER}>`,
+    to: userEmail,
+    subject: `Potwierdzenie zamówienia ${orderDetails.orderNumber}`,
+    html: htmlContent,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+const sendOrderNotificationToSeller = async (sellerEmail, orderDetails) => {
+  const htmlContent = await ejs.renderFile(
+    path.join(__dirname, '../views/orderSellerEmailTemplate.ejs'),
+    { order: orderDetails }
+  );
+
+  const mailOptions = {
+    from: `"Vendoro" <${config.development.EMAIL_USER}>`,
+    to: sellerEmail,
+    subject: `Nowe zamówienie produktu "${orderDetails.product.name}"`,
+    html: htmlContent,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendVerificationEmail, sendResetPasswordEmail, sendGoogleWelcomeEmail, sendOrderConfirmationToCustomer, sendOrderNotificationToSeller };

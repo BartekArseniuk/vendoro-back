@@ -32,7 +32,13 @@
             font-size: 16px;
             line-height: 1.6;
             color: #555;
-            text-align: center;
+        }
+
+        .order-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
         }
 
         footer {
@@ -54,9 +60,28 @@
 
 <body>
     <div class="container">
-        <h2>Witaj w Vendoro!</h2>
-        <p>Twoje konto zostało pomyślnie utworzone poprzez logowanie Google.</p>
-        <p>Możesz teraz w pełni korzystać z wszystkich funkcji naszej platformy.</p>
+        <h2>Nowe zamówienie Twojego produktu</h2>
+
+        <div class="order-info">
+            <p><strong>Produkt:</strong>
+                <%= order.product.name %>
+            </p>
+            <p><strong>Numer zamówienia:</strong>
+                <%= order.orderNumber %>
+            </p>
+            <p><strong>Kupujący:</strong>
+                <%= order.user.firstName %>
+                    <%= order.user.lastName %> (<%= order.user.email %>)
+            </p>
+            <p><strong>Adres wysyłki:</strong>
+                <%= order.shippingAddress.street %>
+                    <%= order.shippingAddress.houseNumber %>, <%= order.shippingAddress.postalCode %>
+                            <%= order.shippingAddress.city %>
+            </p>
+        </div>
+
+        <p style="text-align: center; font-weight: bold;">Masz 7 dni na nadanie paczki – w przeciwnym razie zamówienie
+            zostanie anulowane.</p>
 
         <div class="auto-notice">
             <p>Ta wiadomość została wygenerowana automatycznie. Prosimy na nią nie odpowiadać.</p>

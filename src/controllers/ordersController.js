@@ -1,5 +1,6 @@
 const { Order, Payment, Product, User, Address } = require('../models');
 const payuService = require('../services/payuService');
+const { sendOrderConfirmationToCustomer, sendOrderNotificationToSeller } = require('../services/emailService');
 
 exports.createOrder = async (req, res) => {
     try {
@@ -86,6 +87,18 @@ exports.createOrder = async (req, res) => {
             orderNumber,
         });
 
+        const fullOrder = await Order.findByPk(order.id, {
+            include: [
+                { model: Product, as: 'product', include: [{ model: User, as: 'user' }] },
+                { model: User, as: 'user' },
+                { model: Address, as: 'shippingAddress' }
+            ]
+        });
+
+        await sendOrderConfirmationToCustomer(fullOrder.user.email, fullOrder);
+
+        await sendOrderNotificationToSeller(fullOrder.product.user.email, fullOrder);
+
         const payment = await Payment.create({
             orderId: order.id,
             method: paymentMethod || 'cash_on_delivery',
@@ -155,13 +168,13 @@ exports.payuCallback = async (req, res) => {
         const status = notification.order.status;
         const transactionId = notification.order.extOrderId || notification.order.orderId;
 
-        const order = await Order.findOne({ 
+        const order = await Order.findOne({
             where: { orderNumber },
             include: [
                 { model: Product, as: 'product' }
             ]
         });
-        
+
         if (!order) {
             return res.status(404).send('Order not found');
         }
@@ -193,7 +206,7 @@ exports.payuCallback = async (req, res) => {
         if (paymentStatus === 'paid') {
             order.status = 'processing';
             await order.save();
-            
+
             if (order.product) {
                 await order.product.update({ isSold: true });
             }
@@ -216,7 +229,7 @@ exports.updateOrderStatus = async (req, res) => {
                 { model: Product, as: 'product' }
             ]
         });
-        
+
         if (!order) {
             return res.status(404).json({
                 success: false,
