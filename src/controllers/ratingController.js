@@ -1,4 +1,4 @@
-const { Rating } = require('../models');
+const { Rating, User } = require('../models');
 const leoProfanity = require('leo-profanity');
 
 leoProfanity.loadDictionary();
@@ -14,6 +14,17 @@ exports.addRating = async (req, res) => {
 
         if (rating < 1 || rating > 5) {
             return res.status(400).json({ success: false, message: 'Ocena musi być od 1 do 5' });
+        }
+
+        const existingRating = await Rating.findOne({
+            where: {
+                raterUserId,
+                ratedUserId
+            }
+        });
+
+        if (existingRating) {
+            return res.status(400).json({ success: false, message: 'Możesz ocenić tego użytkownika tylko raz.' });
         }
 
         const cleanComment = comment ? leoProfanity.clean(comment) : null;
@@ -38,7 +49,13 @@ exports.getRatingsForUser = async (req, res) => {
 
         const ratings = await Rating.findAll({
             where: { ratedUserId: userId },
-            order: [['createdAt', 'DESC']]
+            order: [['createdAt', 'DESC']],
+            attributes: { exclude: ['ratedUserId'] },
+            include: [{
+                model: User,
+                as: 'raterUser',
+                attributes: ['firstName', 'lastName', 'avatar']
+            }]
         });
 
         return res.status(200).json({ success: true, ratings });

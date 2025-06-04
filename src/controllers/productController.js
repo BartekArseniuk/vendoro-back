@@ -1,5 +1,6 @@
-const { Product, ProductLike, User, Category } = require('../models');
+const { Product, ProductLike, User, Category, Rating } = require('../models');
 const { Op } = require('sequelize');
+const sequelize = require('../../config/db');
 
 exports.searchProducts = async (req, res) => {
     const { query } = req.query;
@@ -156,13 +157,32 @@ exports.getProductById = async (req, res) => {
                 attributes: userAttributes
             });
 
+            const ratingsStats = await Rating.findOne({
+                attributes: [
+                    [sequelize.fn('AVG', sequelize.col('rating')), 'averageRating'],
+                    [sequelize.fn('COUNT', sequelize.col('id')), 'totalRatings']
+                ],
+                where: { ratedUserId: product.userId },
+                raw: true
+            });
+
+            const averageRating = ratingsStats.averageRating !== null
+                ? parseFloat(ratingsStats.averageRating).toFixed(2)
+                : null;
+
+            const totalRatings = ratingsStats.totalRatings !== null
+                ? parseInt(ratingsStats.totalRatings, 10)
+                : 0;
+
             userData = {
                 avatar: user?.avatar,
                 firstName: user?.firstName,
                 lastName: user?.lastName,
                 email: user?.email,
                 phone: product.sharePhoneNumber ? user?.phone : undefined,
-                createdAt: user?.createdAt
+                createdAt: user?.createdAt,
+                averageRating,
+                totalRatings
             };
         }
 

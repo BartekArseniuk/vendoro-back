@@ -63,7 +63,7 @@ router.post('/rate', verifySession, ratingController.addRating);
  *       500:
  *         description: Błąd serwera
  */
-router.get('/user/:userId', ratingController.getRatingsForUser);
+router.get('/user/:userId', verifySession, ratingController.getRatingsForUser);
 
 /**
  * @swagger
