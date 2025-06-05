@@ -1,7 +1,17 @@
+const path = require('path');
+const fs = require('fs');
 const { Rating, User } = require('../models');
 const leoProfanity = require('leo-profanity');
 
 leoProfanity.loadDictionary();
+
+const badWordsPath = path.join(__dirname, '../../config/bad-words.txt');
+const badWords = fs.readFileSync(badWordsPath, 'utf-8')
+    .split('\n')
+    .map(word => word.trim())
+    .filter(word => word.length > 0);
+
+leoProfanity.add(badWords);
 
 exports.addRating = async (req, res) => {
     try {
