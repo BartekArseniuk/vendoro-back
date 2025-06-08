@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const CategoryController = require('../controllers/categoryController');
+const { verifyAdmin } = require('../middleware/adminMiddleware');
 
 /**
  * @swagger
@@ -31,7 +32,7 @@ const CategoryController = require('../controllers/categoryController');
  *       400:
  *         description: Błąd walidacji danych
  */
-router.post('/create', CategoryController.createCategory);
+router.post('/create', verifyAdmin, CategoryController.createCategory);
 
 /**
  * @swagger
@@ -114,7 +115,7 @@ router.get('/:id', CategoryController.getCategoryById);
  *       500:
  *         description: Błąd przy aktualizacji kategorii
  */
-router.put('/:id', CategoryController.updateCategory);
+router.put('/:id', verifyAdmin, CategoryController.updateCategory);
 
 /**
  * @swagger
@@ -140,6 +141,6 @@ router.put('/:id', CategoryController.updateCategory);
  *       500:
  *         description: Błąd przy usuwaniu kategorii
  */
-router.delete('/:id', CategoryController.deleteCategory);
+router.delete('/:id', verifyAdmin, CategoryController.deleteCategory);
 
 module.exports = router;

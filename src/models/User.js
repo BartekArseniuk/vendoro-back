@@ -1,80 +1,85 @@
-module.exports = (sequelize, DataTypes) => {
-  const fs = require('fs');
-  const path = require('path');
+  module.exports = (sequelize, DataTypes) => {
+    const fs = require('fs');
+    const path = require('path');
 
-  const defaultAvatar = fs.readFileSync(path.join(__dirname, '../../config/defaultAvatar.txt'), 'utf8');
+    const defaultAvatar = fs.readFileSync(path.join(__dirname, '../../config/defaultAvatar.txt'), 'utf8');
 
-  const User = sequelize.define('User', {
-    avatar: {
-      type: DataTypes.TEXT('long'),
-      allowNull: true,
-      defaultValue: defaultAvatar
-    },
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true,
+    const User = sequelize.define('User', {
+      avatar: {
+        type: DataTypes.TEXT('long'),
+        allowNull: true,
+        defaultValue: defaultAvatar
       },
-    },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      unique: true,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    isVerified: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-    },
-    firstLogin: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: true,
-    },
-    passwordChangedAt: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-  }, {
-    tableName: 'users',
-    timestamps: true,
-  });
-
-  User.associate = function (models) {
-    User.hasMany(models.Session, {
-      foreignKey: 'userId',
-      as: 'sessions'
+      firstName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
+      },
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: true,
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      isVerified: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      firstLogin: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
+      passwordChangedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      role: {
+        type: DataTypes.ENUM('user', 'admin'),
+        defaultValue: 'user',
+        allowNull: false,
+      }
+    }, {
+      tableName: 'users',
+      timestamps: true,
     });
 
-    User.hasMany(models.Address, {
-      foreignKey: 'userId',
-      as: 'addresses'
-    });
+    User.associate = function (models) {
+      User.hasMany(models.Session, {
+        foreignKey: 'userId',
+        as: 'sessions'
+      });
 
-    User.hasMany(models.Product, {
-      foreignKey: 'userId',
-      as: 'products'
-    });
+      User.hasMany(models.Address, {
+        foreignKey: 'userId',
+        as: 'addresses'
+      });
 
-    User.hasMany(models.ProductLike, {
-      foreignKey: 'userId',
-      as: 'likedProducts'
-    });
+      User.hasMany(models.Product, {
+        foreignKey: 'userId',
+        as: 'products'
+      });
+
+      User.hasMany(models.ProductLike, {
+        foreignKey: 'userId',
+        as: 'likedProducts'
+      });
+    };
+
+    return User;
   };
-
-  return User;
-};

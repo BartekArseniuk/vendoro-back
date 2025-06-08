@@ -5,6 +5,8 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const config = require('./config/config.json');
 const path = require('path');
 
+const { adminJs, adminRouter } = require('./admin');
+
 const passport = require('passport');
 require('./src/services/passport');
 
@@ -113,6 +115,8 @@ const options = {
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, options));
 
+app.use(adminJs.options.rootPath, adminRouter);
+
 app.use('/api/users', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/users/addresses', addressRoutes);
@@ -125,4 +129,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Swagger UI available at: ${config.development.BASE_URL}/api-docs`);
+    console.log(`AdminJS available at: ${config.development.BASE_URL}${adminJs.options.rootPath}`);
 });

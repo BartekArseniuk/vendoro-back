@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ratingController = require('../controllers/ratingController');
 const { verifySession } = require('../middleware/sessionMiddleware');
+const { verifyAdmin } = require('../middleware/adminMiddleware');
 
 /**
  * @swagger
@@ -106,7 +107,7 @@ router.get('/user/:userId', verifySession, ratingController.getRatingsForUser);
  *       500:
  *         description: Błąd serwera
  */
-router.put('/:ratingId', verifySession, ratingController.updateRating);
+router.put('/:ratingId', verifyAdmin, verifySession, ratingController.updateRating);
 
 /**
  * @swagger
@@ -132,7 +133,7 @@ router.put('/:ratingId', verifySession, ratingController.updateRating);
  *       500:
  *         description: Błąd serwera
  */
-router.delete('/:ratingId', verifySession, ratingController.deleteRating);
+router.delete('/:ratingId', verifyAdmin, verifySession, ratingController.deleteRating);
 
 /**
  * @swagger

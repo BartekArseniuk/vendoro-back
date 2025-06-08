@@ -31,6 +31,8 @@ async function getAccessToken() {
 async function createPayUOrder(order, payment) {
     const token = await getAccessToken();
 
+    const continueUrl = `${config.FRONTEND_URL}${config.PAYU.CONTINUE_PATH}/${order.id}`;
+
     const body = {
         notifyUrl: config.PAYU.REDIRECT_URL,
         customerIp: '127.0.0.1',
@@ -51,7 +53,7 @@ async function createPayUOrder(order, payment) {
                 quantity: 1,
             },
         ],
-        continueUrl: `${config.PAYU.CONTINUE_URL}/${order.id}`
+        continueUrl
     };
 
     const response = await axios.post(
