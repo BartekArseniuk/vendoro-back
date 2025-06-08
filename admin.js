@@ -16,7 +16,97 @@ const adminJs = new AdminJS({
     companyName: 'Vendoro Control Panel',
     logo: false,
     softwareBrothers: false,
+    theme: {
+      colors: {
+        primary100: '#FE8D1C',
+        primary80: '#FE8D1C',
+        primary60: '#FE8D1C',
+        grey100: '#242424',
+        grey80: '#242424',
+        grey20: '#F2F2F2',
+        filterBg: '#F2F2F2',
+        hoverBg: '#FE8D1C33',
+        accent: '#FE8D1C',
+      },
+    },
   },
+  resources: [
+    {
+      resource: db.User, options: {
+        listProperties: ['id', 'email', 'firstName', 'lastName', 'phone', 'isVerified'],
+        properties: {
+          avatar: { isVisible: false },
+          password: { isVisible: false },
+          passwordChangedAt: { isDisabled: true },
+        },
+      }
+    },
+    {
+      resource: db.Address, options: {
+        listProperties: ['id', 'userId', 'city', 'street', 'houseNumber', 'postalCode'],
+      }
+    },
+    {
+      resource: db.Rating, options: {
+        listProperties: ['id', 'rating', 'comment', 'raterUserId', 'ratedUserId'],
+      }
+    },
+    { resource: db.Session },
+    {
+      resource: db.Category, options: {
+        listProperties: ['id', 'name', 'description', 'icon'],
+      }
+    },
+    {
+      resource: db.Product, options: {
+        listProperties: ['id', 'name', 'location', 'price', 'condition'],
+        properties: {
+          photo1: { isVisible: false },
+          photo2: { isVisible: false },
+          photo3: { isVisible: false },
+          photo4: { isVisible: false },
+          photo5: { isVisible: false },
+        },
+      }
+    },
+    {
+      resource: db.ProductLike, options: {
+        listProperties: ['id', 'userId', 'productId'],
+      }
+    },
+    {
+      resource: db.Order, options: {
+        listProperties: ['id', 'orderNumber', 'userId', 'productId', 'wantInvoice', 'status', 'totalPrice'],
+      }
+    },
+    {
+      resource: db.Payment,
+      options: {
+        listProperties: ['id', 'orderNumber', 'method', 'status', 'amount'],
+        properties: {
+          orderId: { isVisible: false },
+          orderNumber: {
+            isVisible: { list: true, filter: true, show: true, edit: false },
+            isVirtual: true,
+          },
+        },
+        actions: {
+          list: {
+            after: async (response) => {
+              await Promise.all(response.records.map(attachOrderNumber));
+              return response;
+            }
+          },
+          show: {
+            after: async (response) => {
+              await attachOrderNumber(response.record);
+              return response;
+            }
+          }
+        }
+      }
+    },
+  ]
 })
 
 const authenticate = async (email, password) => {
@@ -73,5 +163,15 @@ const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
     name: 'adminjs',
   }
 )
+
+const attachOrderNumber = async (record) => {
+  const orderId = record.params.orderId;
+  if (orderId) {
+    const order = await db.Order.findByPk(orderId, {
+      attributes: ['orderNumber']
+    });
+    record.params.orderNumber = order ? order.orderNumber : null;
+  }
+};
 
 export { adminJs, adminRouter }
