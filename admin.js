@@ -7,6 +7,8 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
 import { ComponentLoader } from 'adminjs'
+import { Op } from 'sequelize'
+import dayjs from 'dayjs'
 
 const require = createRequire(import.meta.url)
 const config = require('./config/config.json')
@@ -27,11 +29,120 @@ const adminJs = new AdminJS({
   rootPath: '/admin',
   componentLoader,
   dashboard: {
-    handler: async () => {
+    handler: async (request) => {
+      const days = parseInt(request.query?.days) || 7
+
       const usersCount = await db.User.count()
       const productsCount = await db.Product.count()
       const ordersCount = await db.Order.count()
-      return { usersCount, productsCount, ordersCount }
+
+      const sales = await db.Order.findAll({
+        attributes: ['createdAt'],
+        where: {
+          createdAt: {
+            [Op.gte]: dayjs().subtract(days, 'day').startOf('day').toDate(),
+          },
+        },
+      })
+
+      const lastSoldProducts = await db.Order.findAll({
+        limit: 5,
+        order: [['createdAt', 'DESC']],
+        include: [{
+          model: db.Product,
+          as: 'product',
+          attributes: ['id', 'name', 'price']
+        }],
+        attributes: ['id', 'createdAt']
+      })
+
+      const salesByCategory = await db.Order.findAll({
+        include: [{
+          model: db.Product,
+          as: 'product',
+          include: [{
+            model: db.Category,
+            as: 'category',
+            attributes: ['id', 'name']
+          }]
+        }],
+        where: {
+          createdAt: {
+            [Op.gte]: dayjs().subtract(days, 'day').startOf('day').toDate(),
+          },
+        },
+        attributes: ['id']
+      })
+
+      const categorySalesMap = {}
+      salesByCategory.forEach(order => {
+        if (order.product && order.product.category) {
+          const categoryId = order.product.category.id
+          const categoryName = order.product.category.name
+          categorySalesMap[categoryId] = categorySalesMap[categoryId] || {
+            id: categoryId,
+            name: categoryName,
+            count: 0
+          }
+          categorySalesMap[categoryId].count++
+        }
+      })
+      const salesByCategoryData = Object.values(categorySalesMap)
+        .sort((a, b) => b.count - a.count)
+      let salesChartData = []
+
+      if (days <= 30) {
+        const lastDays = Array.from({ length: days }).map((_, i) => {
+          const date = dayjs().subtract(days - 1 - i, 'day').format('YYYY-MM-DD')
+          return { date, count: 0 }
+        })
+
+        for (const sale of sales) {
+          const date = dayjs(sale.createdAt).format('YYYY-MM-DD')
+          const match = lastDays.find(d => d.date === date)
+          if (match) match.count++
+        }
+        salesChartData = lastDays
+
+      } else {
+        const monthsCount = days === 365 ? 12 : Math.ceil(days / 30)
+        const startMonth = dayjs().subtract(monthsCount - 1, 'month').startOf('month')
+
+        const months = Array.from({ length: monthsCount }).map((_, i) => {
+          const month = startMonth.add(i, 'month')
+          return {
+            month: month.format('YYYY-MM'),
+            label: month.format('MMMM'),
+            count: 0,
+          }
+        })
+
+        for (const sale of sales) {
+          const saleMonth = dayjs(sale.createdAt).format('YYYY-MM')
+          const match = months.find(m => m.month === saleMonth)
+          if (match) match.count++
+        }
+
+        salesChartData = months.map(m => ({
+          date: m.label,
+          count: m.count,
+        }))
+      }
+
+      return {
+        usersCount,
+        productsCount,
+        ordersCount,
+        salesChartData,
+        lastSoldProducts: lastSoldProducts.map(order => ({
+          id: order.id,
+          productId: order.product.id,
+          productName: order.product.name,
+          price: order.product.price,
+          date: dayjs(order.createdAt).format('YYYY-MM-DD HH:mm')
+        })),
+        salesByCategory: salesByCategoryData
+      }
     },
     component: COMPONENTS.Dashboard,
   },
