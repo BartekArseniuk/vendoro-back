@@ -3,15 +3,38 @@ import AdminJSExpress from '@adminjs/express'
 import AdminJSSequelize from '@adminjs/sequelize'
 import db from './src/models/index.js'
 import bcrypt from 'bcrypt'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
+import { ComponentLoader } from 'adminjs'
+
 const require = createRequire(import.meta.url)
 const config = require('./config/config.json')
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 AdminJS.registerAdapter(AdminJSSequelize)
+
+// Rejestracja komponentu dashboardu
+const componentLoader = new ComponentLoader()
+const COMPONENTS = {
+  Dashboard: componentLoader.add('Dashboard', path.join(__dirname, 'admin', 'dashboard-component.jsx'))
+}
 
 const adminJs = new AdminJS({
   databases: [db.sequelize],
   rootPath: '/admin',
+  componentLoader,
+  dashboard: {
+    handler: async () => {
+      const usersCount = await db.User.count()
+      const productsCount = await db.Product.count()
+      const ordersCount = await db.Order.count()
+      return { usersCount, productsCount, ordersCount }
+    },
+    component: COMPONENTS.Dashboard,
+  },
   branding: {
     companyName: 'Vendoro Control Panel',
     logo: false,
@@ -33,6 +56,7 @@ const adminJs = new AdminJS({
   resources: [
     {
       resource: db.User, options: {
+        navigation: { name: 'Resources' },
         listProperties: ['id', 'email', 'firstName', 'lastName', 'phone', 'isVerified'],
         properties: {
           avatar: { isVisible: false },
@@ -43,22 +67,30 @@ const adminJs = new AdminJS({
     },
     {
       resource: db.Address, options: {
+        navigation: { name: 'Resources' },
         listProperties: ['id', 'userId', 'city', 'street', 'houseNumber', 'postalCode'],
       }
     },
     {
       resource: db.Rating, options: {
+        navigation: { name: 'Resources' },
         listProperties: ['id', 'rating', 'comment', 'raterUserId', 'ratedUserId'],
       }
     },
-    { resource: db.Session },
+    {
+      resource: db.Session, options: {
+        navigation: { name: 'Resources' },
+      }
+    },
     {
       resource: db.Category, options: {
+        navigation: { name: 'Resources' },
         listProperties: ['id', 'name', 'description', 'icon'],
       }
     },
     {
       resource: db.Product, options: {
+        navigation: { name: 'Resources' },
         listProperties: ['id', 'name', 'location', 'price', 'condition'],
         properties: {
           photo1: { isVisible: false },
@@ -71,17 +103,20 @@ const adminJs = new AdminJS({
     },
     {
       resource: db.ProductLike, options: {
+        navigation: { name: 'Resources' },
         listProperties: ['id', 'userId', 'productId'],
       }
     },
     {
       resource: db.Order, options: {
+        navigation: { name: 'Resources' },
         listProperties: ['id', 'orderNumber', 'userId', 'productId', 'wantInvoice', 'status', 'totalPrice'],
       }
     },
     {
       resource: db.Payment,
       options: {
+        navigation: { name: 'Resources' },
         listProperties: ['id', 'orderNumber', 'method', 'status', 'amount'],
         properties: {
           orderId: { isVisible: false },
