@@ -62,7 +62,13 @@
 
 <body>
     <div class="container">
-        <h2>Dziękujemy za złożenie zamówienia!</h2>
+        <h2>
+            <% if (order.cancelled) { %>
+                Zamówienie zostało anulowane
+                <% } else { %>
+                    Dziękujemy za złożenie zamówienia!
+                    <% } %>
+        </h2>
 
         <div class="order-info">
             <p><strong>Numer zamówienia:</strong>
@@ -76,16 +82,21 @@
             </p>
         </div>
 
-        <p>Otrzymasz kolejną wiadomość, gdy paczka zostanie nadana.</p>
-        <p>Dziękujemy za zakupy w Vendoro!</p>
+        <% if (order.cancelled) { %>
+            <p>Twoje zamówienie zostało anulowane, ponieważ płatność nie została zakończona.</p>
+            <p>Jeśli nadal chcesz kupić ten produkt, spróbuj ponownie złożyć zamówienie.</p>
+            <% } else { %>
+                <p>Otrzymasz kolejną wiadomość, gdy paczka zostanie nadana.</p>
+                <p>Dziękujemy za zakupy w Vendoro!</p>
+                <% } %>
 
-        <div class="auto-notice">
-            <p>Ta wiadomość została wygenerowana automatycznie. Prosimy na nią nie odpowiadać.</p>
-        </div>
+                    <div class="auto-notice">
+                        <p>Ta wiadomość została wygenerowana automatycznie. Prosimy na nią nie odpowiadać.</p>
+                    </div>
 
-        <footer>
-            <p>Vendoro &copy; 2025</p>
-        </footer>
+                    <footer>
+                        <p>Vendoro &copy; 2025</p>
+                    </footer>
     </div>
 </body>
 

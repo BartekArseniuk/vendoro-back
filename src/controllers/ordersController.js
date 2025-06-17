@@ -95,10 +95,6 @@ exports.createOrder = async (req, res) => {
             ]
         });
 
-        await sendOrderConfirmationToCustomer(fullOrder.user.email, fullOrder);
-
-        await sendOrderNotificationToSeller(fullOrder.product.user.email, fullOrder);
-
         const payment = await Payment.create({
             orderId: order.id,
             method: paymentMethod || 'cash_on_delivery',
@@ -192,9 +188,6 @@ exports.payuCallback = async (req, res) => {
             case 'CANCELED':
                 paymentStatus = 'cancelled';
                 break;
-            case 'FAILED':
-                paymentStatus = 'failed';
-                break;
             default:
                 paymentStatus = 'pending';
         }
@@ -210,6 +203,38 @@ exports.payuCallback = async (req, res) => {
             if (order.product) {
                 await order.product.update({ isSold: true });
             }
+
+            const fullOrder = await Order.findByPk(order.id, {
+                include: [
+                    { model: Product, as: 'product', include: [{ model: User, as: 'user' }] },
+                    { model: User, as: 'user' },
+                    { model: Address, as: 'shippingAddress' }
+                ]
+            });
+
+            await sendOrderConfirmationToCustomer(fullOrder.user.email, fullOrder);
+            await sendOrderNotificationToSeller(fullOrder.product.user.email, fullOrder);
+        }
+
+        if (paymentStatus === 'cancelled') {
+            const user = await User.findByPk(order.userId);
+
+            const fullOrder = await Order.findByPk(order.id, {
+                include: [
+                    { model: Product, as: 'product' },
+                    { model: User, as: 'user' }
+                ]
+            });
+
+            await sendOrderConfirmationToCustomer(user.email, {
+                ...fullOrder.toJSON(),
+                cancelled: true
+            });
+
+            // await Payment.destroy({ where: { id: payment.id } });
+            // await Order.destroy({ where: { id: order.id } });
+
+            return res.status(200).send('Zamówienie anulowane i usunięte');
         }
 
         res.status(200).send('OK');

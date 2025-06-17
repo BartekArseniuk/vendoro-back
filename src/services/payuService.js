@@ -34,7 +34,7 @@ async function createPayUOrder(order, payment) {
     const continueUrl = `${config.FRONTEND_URL}${config.PAYU.CONTINUE_PATH}/${order.id}`;
 
     const body = {
-        notifyUrl: config.PAYU.REDIRECT_URL,
+        notifyUrl: `${config.BASE_URL}/api/orders/payu-callback`,
         customerIp: '127.0.0.1',
         merchantPosId: config.PAYU.POS_ID,
         description: `Zamówienie ${order.orderNumber}`,

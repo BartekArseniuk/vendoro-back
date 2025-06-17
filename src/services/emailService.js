@@ -67,7 +67,7 @@ const sendOrderConfirmationToCustomer = async (userEmail, orderDetails) => {
   const mailOptions = {
     from: `"Vendoro" <${config.development.EMAIL_USER}>`,
     to: userEmail,
-    subject: `Potwierdzenie zamówienia ${orderDetails.orderNumber}`,
+    subject: `Zamówienie ${orderDetails.orderNumber}`,
     html: htmlContent,
   };
 
