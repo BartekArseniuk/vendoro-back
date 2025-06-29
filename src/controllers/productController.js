@@ -32,13 +32,8 @@ exports.searchProducts = async (req, res) => {
 
 const addLikesToProducts = async (products) => {
     return Promise.all(products.map(async (product) => {
-        const likesCount = await ProductLike.count({
-            where: { productId: product.id }
-        });
-        return {
-            ...product.toJSON(),
-            likesCount
-        };
+        const likesCount = await ProductLike.count({ where: { productId: product.id } });
+        return { ...product.toJSON(), likesCount };
     }));
 };
 
@@ -46,9 +41,7 @@ exports.getLatestProducts = async (req, res) => {
     try {
         const products = await Product.findAll({
             attributes: ['id', 'name', 'description', 'price', 'photo1'],
-            where: {
-                isSold: false,
-            },
+            where: { isSold: false },
             limit: 12,
             order: [['createdAt', 'DESC']]
         });
@@ -62,19 +55,19 @@ exports.getLatestProducts = async (req, res) => {
 };
 
 exports.getLikedProducts = async (req, res) => {
-    const userId = req.user?.id || req.session.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
         return res.status(401).json({ message: 'Nieautoryzowany dostęp' });
     }
 
     try {
-        const likedProductLinks = await ProductLike.findAll({
+        const likedLinks = await ProductLike.findAll({
             where: { userId },
             attributes: ['productId'],
         });
 
-        const productIds = likedProductLinks.map(like => like.productId);
+        const productIds = likedLinks.map(like => like.productId);
 
         const likedProducts = await Product.findAll({
             where: { id: productIds },
@@ -82,7 +75,6 @@ exports.getLikedProducts = async (req, res) => {
         });
 
         const productsWithLikes = await addLikesToProducts(likedProducts);
-
         return res.status(200).json(productsWithLikes);
     } catch (error) {
         console.error(error);
@@ -90,14 +82,11 @@ exports.getLikedProducts = async (req, res) => {
     }
 };
 
-exports.getProductsByUserId = async (req, res) => {
-    const { userId } = req.params;
+exports.getProductsByLoggedInUser = async (req, res) => {
+    const userId = req.user.id;
 
     try {
-        const products = await Product.findAll({
-            where: { userId },
-        });
-
+        const products = await Product.findAll({ where: { userId } });
         const productsWithLikes = await addLikesToProducts(products);
         return res.status(200).json(productsWithLikes);
     } catch (error) {
@@ -142,19 +131,12 @@ exports.getProductById = async (req, res) => {
             return res.status(404).json({ message: 'Produkt nie znaleziony' });
         }
 
-        const likesCount = await ProductLike.count({
-            where: { productId: id }
-        });
+        const likesCount = await ProductLike.count({ where: { productId: id } });
 
         let userData = null;
         if (product.userId) {
-            const userAttributes = ['avatar', 'firstName', 'lastName', 'email', 'createdAt'];
-            if (product.sharePhoneNumber) {
-                userAttributes.push('phone');
-            }
-
             const user = await User.findByPk(product.userId, {
-                attributes: userAttributes
+                attributes: ['avatar', 'firstName', 'lastName', 'email', 'createdAt', ...(product.sharePhoneNumber ? ['phone'] : [])]
             });
 
             const ratingsStats = await Rating.findOne({
@@ -166,34 +148,19 @@ exports.getProductById = async (req, res) => {
                 raw: true
             });
 
-            const averageRating = ratingsStats.averageRating !== null
-                ? parseFloat(ratingsStats.averageRating).toFixed(2)
-                : null;
-
-            const totalRatings = ratingsStats.totalRatings !== null
-                ? parseInt(ratingsStats.totalRatings, 10)
-                : 0;
-
             userData = {
-                avatar: user?.avatar,
-                firstName: user?.firstName,
-                lastName: user?.lastName,
-                email: user?.email,
-                phone: product.sharePhoneNumber ? user?.phone : undefined,
-                createdAt: user?.createdAt,
-                averageRating,
-                totalRatings
+                ...user?.toJSON(),
+                averageRating: ratingsStats?.averageRating ? parseFloat(ratingsStats.averageRating).toFixed(2) : null,
+                totalRatings: ratingsStats?.totalRatings ? parseInt(ratingsStats.totalRatings, 10) : 0
             };
         }
 
-        const formattedProduct = {
+        return res.status(200).json({
             ...product.toJSON(),
             user: userData,
             category: product.category,
             likesCount
-        };
-
-        return res.status(200).json(formattedProduct);
+        });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy pobieraniu produktu' });
@@ -202,31 +169,16 @@ exports.getProductById = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
     const {
-        name,
-        description,
-        location,
-        price,
-        condition,
-        deliveryMethod,
-        sharePhoneNumber,
-        photo1,
-        photo2,
-        photo3,
-        photo4,
-        photo5,
-        userId,
-        categoryId,
-        isSold
+        name, description, location, price, condition, deliveryMethod,
+        sharePhoneNumber, photo1, photo2, photo3, photo4, photo5,
+        categoryId, isSold
     } = req.body;
 
-    try {
-        if (!name || !description || !location || !price || !condition || !userId || !categoryId || !deliveryMethod) {
-            return res.status(400).json({ message: 'Wszystkie wymagane pola muszą być wypełnione' });
-        }
+    const userId = req.user.id;
 
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(400).json({ message: 'Użytkownik nie istnieje' });
+    try {
+        if (!name || !description || !location || !price || !condition || !categoryId || !deliveryMethod) {
+            return res.status(400).json({ message: 'Wszystkie wymagane pola muszą być wypełnione' });
         }
 
         const category = await Category.findByPk(categoryId);
@@ -235,21 +187,9 @@ exports.createProduct = async (req, res) => {
         }
 
         const newProduct = await Product.create({
-            name,
-            description,
-            location,
-            price,
-            condition,
-            deliveryMethod,
-            sharePhoneNumber,
-            photo1,
-            photo2,
-            photo3,
-            photo4,
-            photo5,
-            userId,
-            categoryId,
-            isSold
+            name, description, location, price, condition, deliveryMethod,
+            sharePhoneNumber, photo1, photo2, photo3, photo4, photo5,
+            categoryId, userId, isSold
         });
 
         return res.status(201).json({
@@ -265,37 +205,21 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     const { id } = req.params;
     const {
-        name,
-        description,
-        location,
-        price,
-        condition,
-        deliveryMethod,
-        sharePhoneNumber,
-        photo1,
-        photo2,
-        photo3,
-        photo4,
-        photo5,
-        userId,
-        categoryId,
-        isSold
+        name, description, location, price, condition, deliveryMethod,
+        sharePhoneNumber, photo1, photo2, photo3, photo4, photo5,
+        categoryId, isSold
     } = req.body;
+
+    const userId = req.user.id;
 
     try {
         const product = await Product.findByPk(id);
-
         if (!product) {
             return res.status(404).json({ message: 'Produkt nie znaleziony' });
         }
 
-        if (!name || !location || !price || !userId || !categoryId || !deliveryMethod) {
-            return res.status(400).json({ message: 'Wszystkie wymagane pola muszą być wypełnione' });
-        }
-
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(400).json({ message: 'Użytkownik nie istnieje' });
+        if (product.userId !== userId) {
+            return res.status(401).json({ message: 'Brak dostępu do edycji tego produktu' });
         }
 
         const category = await Category.findByPk(categoryId);
@@ -303,21 +227,11 @@ exports.updateProduct = async (req, res) => {
             return res.status(400).json({ message: 'Kategoria nie istnieje' });
         }
 
-        product.name = name;
-        product.description = description;
-        product.location = location;
-        product.price = price;
-        product.condition = condition;
-        product.deliveryMethod = deliveryMethod;
-        product.sharePhoneNumber = sharePhoneNumber;
-        product.photo1 = photo1;
-        product.photo2 = photo2;
-        product.photo3 = photo3;
-        product.photo4 = photo4;
-        product.photo5 = photo5;
-        product.userId = userId;
-        product.categoryId = categoryId;
-        product.isSold = isSold;
+        Object.assign(product, {
+            name, description, location, price, condition, deliveryMethod,
+            sharePhoneNumber, photo1, photo2, photo3, photo4, photo5,
+            categoryId, isSold
+        });
 
         await product.save();
 
@@ -333,12 +247,16 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
     const { id } = req.params;
+    const userId = req.user.id;
 
     try {
         const product = await Product.findByPk(id);
-
         if (!product) {
             return res.status(404).json({ message: 'Produkt nie znaleziony' });
+        }
+
+        if (product.userId !== userId) {
+            return res.status(401).json({ message: 'Brak dostępu do usunięcia tego produktu' });
         }
 
         await product.destroy();
@@ -352,16 +270,14 @@ exports.deleteProduct = async (req, res) => {
 
 exports.toggleLike = async (req, res) => {
     const { productId } = req.params;
-    const userId = req.session.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
         return res.status(401).json({ message: 'Nieautoryzowany dostęp' });
     }
 
     try {
-        const existingLike = await ProductLike.findOne({
-            where: { productId, userId },
-        });
+        const existingLike = await ProductLike.findOne({ where: { productId, userId } });
 
         if (existingLike) {
             await existingLike.destroy();

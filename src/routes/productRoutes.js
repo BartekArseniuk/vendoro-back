@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const ProductController = require('../controllers/productController');
-
 const { verifySession } = require('../middleware/sessionMiddleware');
 
 /**
@@ -9,24 +8,21 @@ const { verifySession } = require('../middleware/sessionMiddleware');
  * /api/products/search:
  *   get:
  *     summary: Wyszukiwanie produktów po nazwie lub opisie
- *     tags:
- *       - Products
- *     description: Zwraca produkty, których nazwa lub opis zawierają podaną frazę
+ *     tags: [Products]
  *     parameters:
  *       - in: query
  *         name: query
  *         required: true
- *         description: Fraza do wyszukania w nazwie lub opisie produktu
  *         schema:
  *           type: string
  *           example: laptop
  *     responses:
  *       200:
- *         description: Lista produktów pasujących do zapytania
+ *         description: Lista dopasowanych produktów
  *       400:
- *         description: Brak frazy do wyszukania
+ *         description: Brak frazy
  *       500:
- *         description: Błąd przy wyszukiwaniu produktów
+ *         description: Błąd serwera
  */
 router.get('/search', ProductController.searchProducts);
 
@@ -35,14 +31,12 @@ router.get('/search', ProductController.searchProducts);
  * /api/products/latest:
  *   get:
  *     summary: Pobranie 12 najnowszych produktów
- *     tags:
- *       - Products
- *     description: Zwraca 12 najnowszych produktów posortowanych malejąco według daty utworzenia
+ *     tags: [Products]
  *     responses:
  *       200:
- *         description: Lista 12 najnowszych produktów
+ *         description: Lista produktów
  *       500:
- *         description: Błąd przy pobieraniu najnowszych produktów
+ *         description: Błąd serwera
  */
 router.get('/latest', ProductController.getLatestProducts);
 
@@ -50,65 +44,54 @@ router.get('/latest', ProductController.getLatestProducts);
  * @swagger
  * /api/products/liked:
  *   get:
- *     summary: Pobranie produktów polubionych przez zalogowanego użytkownika
- *     tags:
- *       - Products
- *     description: Zwraca listę produktów, które użytkownik polubił
+ *     summary: Produkty polubione przez użytkownika
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista polubionych produktów
+ *         description: Lista produktów
  *       401:
  *         description: Nieautoryzowany dostęp
  *       500:
- *         description: Błąd przy pobieraniu polubionych produktów
+ *         description: Błąd serwera
  */
 router.get('/liked', verifySession, ProductController.getLikedProducts);
 
 /**
  * @swagger
- * /api/products/user/{userId}:
+ * /api/products/user:
  *   get:
- *     summary: Pobranie produktów użytkownika
- *     tags:
- *       - Products
- *     description: Zwraca listę produktów dodanych przez danego użytkownika
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         description: ID użytkownika
- *         schema:
- *           type: integer
- *           example: 1
+ *     summary: Produkty zalogowanego użytkownika
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista produktów użytkownika
+ *         description: Lista produktów
  *       500:
- *         description: Błąd przy pobieraniu produktów
+ *         description: Błąd serwera
  */
-router.get('/user/:userId', ProductController.getProductsByUserId);
+router.get('/user', verifySession, ProductController.getProductsByLoggedInUser);
 
 /**
  * @swagger
  * /api/products/category/{categoryId}:
  *   get:
- *     summary: Pobranie produktów według kategorii
- *     tags:
- *       - Products
- *     description: Zwraca listę produktów przypisanych do danej kategorii
+ *     summary: Produkty z danej kategorii
+ *     tags: [Products]
  *     parameters:
  *       - in: path
  *         name: categoryId
  *         required: true
- *         description: ID kategorii
  *         schema:
  *           type: integer
  *           example: 1
  *     responses:
  *       200:
- *         description: Lista produktów z danej kategorii
+ *         description: Lista produktów
  *       500:
- *         description: Błąd przy pobieraniu produktów
+ *         description: Błąd serwera
  */
 router.get('/category/:categoryId', ProductController.getProductsByCategoryId);
 
@@ -116,25 +99,22 @@ router.get('/category/:categoryId', ProductController.getProductsByCategoryId);
  * @swagger
  * /api/products/{id}:
  *   get:
- *     summary: Pobranie szczegółów produktu
- *     tags:
- *       - Products
- *     description: Pobiera szczegóły produktu na podstawie ID
+ *     summary: Szczegóły produktu
+ *     tags: [Products]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID produktu
  *         schema:
  *           type: integer
  *           example: 1
  *     responses:
  *       200:
- *         description: Zwraca szczegóły produktu
+ *         description: Szczegóły produktu
  *       404:
- *         description: Produkt nie znaleziony
+ *         description: Nie znaleziono
  *       500:
- *         description: Błąd przy pobieraniu produktu
+ *         description: Błąd serwera
  */
 router.get('/:id', ProductController.getProductById);
 
@@ -143,9 +123,9 @@ router.get('/:id', ProductController.getProductById);
  * /api/products/create:
  *   post:
  *     summary: Tworzenie nowego produktu
- *     tags:
- *       - Products
- *     description: Tworzy nowy produkt w systemie
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -156,60 +136,42 @@ router.get('/:id', ProductController.getProductById);
  *               - name
  *               - location
  *               - price
- *               - userId
  *               - categoryId
  *               - deliveryMethod
  *             properties:
  *               name:
  *                 type: string
- *                 example: Laptop
  *               description:
  *                 type: string
- *                 example: Nowoczesny laptop gamingowy
  *               location:
  *                 type: string
- *                 example: Warszawa
  *               price:
  *                 type: number
- *                 format: float
- *                 example: 3000.00
  *               condition:
  *                 type: string
- *                 example: new
  *               deliveryMethod:
  *                 type: string
- *                 example: both
  *               sharePhoneNumber:
  *                 type: boolean
- *                 example: true
  *               photo1:
  *                 type: string
- *                 example: photo1.jpg
  *               photo2:
  *                 type: string
- *                 example: photo2.jpg
  *               photo3:
  *                 type: string
- *                 example: photo3.jpg
  *               photo4:
  *                 type: string
- *                 example: photo4.jpg
  *               photo5:
  *                 type: string
- *                 example: photo5.jpg
- *               userId:
- *                 type: integer
- *                 example: 1
  *               categoryId:
  *                 type: integer
- *                 example: 1
  *     responses:
  *       201:
- *         description: Produkt został pomyślnie stworzony
+ *         description: Produkt utworzony
  *       400:
- *         description: Błąd walidacji lub użytkownik/kategoria nie istnieje
+ *         description: Błąd walidacji
  *       500:
- *         description: Błąd przy tworzeniu produktu
+ *         description: Błąd serwera
  */
 router.post('/create', verifySession, ProductController.createProduct);
 
@@ -218,17 +180,15 @@ router.post('/create', verifySession, ProductController.createProduct);
  * /api/products/{id}:
  *   put:
  *     summary: Aktualizacja produktu
- *     tags:
- *       - Products
- *     description: Umożliwia aktualizację szczegółów produktu
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID produktu
  *         schema:
  *           type: integer
- *           example: 1
  *     requestBody:
  *       required: true
  *       content:
@@ -239,62 +199,48 @@ router.post('/create', verifySession, ProductController.createProduct);
  *               - name
  *               - location
  *               - price
- *               - userId
  *               - categoryId
  *               - deliveryMethod
  *             properties:
  *               name:
  *                 type: string
- *                 example: Laptop Gamingowy
  *               description:
  *                 type: string
- *                 example: Nowoczesny laptop gamingowy z dużym dyskiem
  *               location:
  *                 type: string
- *                 example: Wrocław
  *               price:
  *                 type: number
- *                 format: float
- *                 example: 3500.00
  *               condition:
  *                 type: string
- *                 example: new
  *               deliveryMethod:
  *                 type: string
- *                 example: both
  *               sharePhoneNumber:
  *                 type: boolean
- *                 example: false
  *               photo1:
  *                 type: string
- *                 example: new_photo1.jpg
  *               photo2:
  *                 type: string
- *                 example: new_photo2.jpg
  *               photo3:
  *                 type: string
- *                 example: new_photo3.jpg
  *               photo4:
  *                 type: string
- *                 example: new_photo4.jpg
  *               photo5:
  *                 type: string
- *                 example: new_photo5.jpg
- *               userId:
- *                 type: integer
- *                 example: 1
  *               categoryId:
  *                 type: integer
- *                 example: 2
+ *               isSold:
+ *                 type: boolean
  *     responses:
  *       200:
- *         description: Produkt został zaktualizowany
+ *         description: Produkt zaktualizowany
  *       400:
  *         description: Błąd walidacji
+ *       401:
+ *         description: Brak dostępu
  *       404:
  *         description: Produkt nie znaleziony
  *       500:
- *         description: Błąd przy aktualizacji produktu
+ *         description: Błąd serwera
  */
 router.put('/:id', verifySession, ProductController.updateProduct);
 
@@ -303,24 +249,24 @@ router.put('/:id', verifySession, ProductController.updateProduct);
  * /api/products/{id}:
  *   delete:
  *     summary: Usunięcie produktu
- *     tags:
- *       - Products
- *     description: Usuwa produkt na podstawie ID
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID produktu
  *         schema:
  *           type: integer
- *           example: 1
  *     responses:
  *       200:
- *         description: Produkt został usunięty
+ *         description: Produkt usunięty
+ *       401:
+ *         description: Brak dostępu
  *       404:
  *         description: Produkt nie znaleziony
  *       500:
- *         description: Błąd przy usuwaniu produktu
+ *         description: Błąd serwera
  */
 router.delete('/:id', verifySession, ProductController.deleteProduct);
 
@@ -329,17 +275,15 @@ router.delete('/:id', verifySession, ProductController.deleteProduct);
  * /api/products/{productId}/like:
  *   post:
  *     summary: Polubienie lub odlubienie produktu
- *     tags:
- *       - Products
- *     description: Dodaje lub usuwa polubienie produktu przez zalogowanego użytkownika
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: productId
  *         required: true
- *         description: ID produktu
  *         schema:
  *           type: integer
- *           example: 1
  *     responses:
  *       200:
  *         description: Polubienie usunięte
@@ -348,7 +292,7 @@ router.delete('/:id', verifySession, ProductController.deleteProduct);
  *       401:
  *         description: Nieautoryzowany dostęp
  *       500:
- *         description: Błąd podczas zmiany stanu polubienia
+ *         description: Błąd serwera
  */
 router.post('/:productId/like', verifySession, ProductController.toggleLike);
 

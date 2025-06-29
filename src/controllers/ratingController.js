@@ -4,13 +4,11 @@ const { Rating, User } = require('../models');
 const leoProfanity = require('leo-profanity');
 
 leoProfanity.loadDictionary();
-
 const badWordsPath = path.join(__dirname, '../../config/bad-words.txt');
 const badWords = fs.readFileSync(badWordsPath, 'utf-8')
     .split('\n')
     .map(word => word.trim())
     .filter(word => word.length > 0);
-
 leoProfanity.add(badWords);
 
 exports.addRating = async (req, res) => {
@@ -26,26 +24,14 @@ exports.addRating = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Ocena musi być od 1 do 5' });
         }
 
-        const existingRating = await Rating.findOne({
-            where: {
-                raterUserId,
-                ratedUserId
-            }
-        });
-
+        const existingRating = await Rating.findOne({ where: { raterUserId, ratedUserId } });
         if (existingRating) {
             return res.status(400).json({ success: false, message: 'Możesz ocenić tego użytkownika tylko raz.' });
         }
 
         const cleanComment = comment ? leoProfanity.clean(comment) : null;
 
-        const newRating = await Rating.create({
-            raterUserId,
-            ratedUserId,
-            rating,
-            comment: cleanComment
-        });
-
+        const newRating = await Rating.create({ raterUserId, ratedUserId, rating, comment: cleanComment });
         return res.status(201).json({ success: true, rating: newRating });
     } catch (err) {
         console.error('Błąd przy dodawaniu oceny:', err);
@@ -53,12 +39,11 @@ exports.addRating = async (req, res) => {
     }
 };
 
-exports.getRatingsForUser = async (req, res) => {
+exports.getMyRatings = async (req, res) => {
     try {
-        const { userId } = req.params;
-
+        const ratedUserId = req.user.id;
         const ratings = await Rating.findAll({
-            where: { ratedUserId: userId },
+            where: { ratedUserId },
             order: [['createdAt', 'DESC']],
             attributes: { exclude: ['ratedUserId'] },
             include: [{
@@ -67,10 +52,9 @@ exports.getRatingsForUser = async (req, res) => {
                 attributes: ['firstName', 'lastName', 'avatar']
             }]
         });
-
         return res.status(200).json({ success: true, ratings });
     } catch (err) {
-        console.error('Błąd przy pobieraniu ocen:', err);
+        console.error('Błąd przy pobieraniu ocen użytkownika:', err);
         return res.status(500).json({ success: false, message: 'Błąd serwera przy pobieraniu ocen' });
     }
 };
@@ -95,7 +79,6 @@ exports.updateRating = async (req, res) => {
         if (comment !== undefined) updates.comment = leoProfanity.clean(comment);
 
         await ratingToUpdate.update(updates);
-
         return res.status(200).json({ success: true, rating: ratingToUpdate });
     } catch (err) {
         console.error('Błąd przy aktualizacji oceny:', err);
@@ -114,7 +97,6 @@ exports.deleteRating = async (req, res) => {
         }
 
         await ratingToDelete.destroy();
-
         return res.status(200).json({ success: true, message: 'Ocena została usunięta' });
     } catch (err) {
         console.error('Błąd przy usuwaniu oceny:', err);
@@ -132,16 +114,10 @@ exports.hasRatedSeller = async (req, res) => {
         }
 
         const existingRating = await Rating.findOne({
-            where: {
-                raterUserId,
-                ratedUserId: sellerId
-            }
+            where: { raterUserId, ratedUserId: sellerId }
         });
 
-        return res.status(200).json({
-            success: true,
-            hasRated: !!existingRating
-        });
+        return res.status(200).json({ success: true, hasRated: !!existingRating });
     } catch (err) {
         console.error('Błąd przy sprawdzaniu oceny:', err);
         return res.status(500).json({ success: false, message: 'Błąd serwera' });

@@ -46,25 +46,19 @@ router.post('/rate', verifySession, ratingController.addRating);
 
 /**
  * @swagger
- * /api/ratings/user/{userId}:
+ * /api/ratings/my:
  *   get:
- *     summary: Pobierz oceny dla danego użytkownika
- *     tags:
- *       - Ratings
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID ocenianego użytkownika
+ *     summary: Pobierz oceny zalogowanego użytkownika
+ *     tags: [Ratings]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista ocen użytkownika
+ *         description: Lista własnych ocen
  *       500:
  *         description: Błąd serwera
  */
-router.get('/user/:userId', verifySession, ratingController.getRatingsForUser);
+router.get('/my', verifySession, ratingController.getMyRatings);
 
 /**
  * @swagger

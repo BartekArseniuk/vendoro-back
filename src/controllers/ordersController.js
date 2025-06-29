@@ -4,6 +4,8 @@ const { sendOrderConfirmationToCustomer, sendOrderNotificationToSeller } = requi
 
 exports.createOrder = async (req, res) => {
     try {
+        const userId = req.user.id;
+
         const generateOrderNumber = () => {
             const now = new Date();
             const year = now.getFullYear().toString().slice(2);
@@ -31,7 +33,6 @@ exports.createOrder = async (req, res) => {
         }
 
         const {
-            userId,
             productId,
             shippingMethod,
             shippingAddressId,
@@ -231,9 +232,6 @@ exports.payuCallback = async (req, res) => {
                 cancelled: true
             });
 
-            // await Payment.destroy({ where: { id: payment.id } });
-            // await Order.destroy({ where: { id: order.id } });
-
             return res.status(200).send('Zamówienie anulowane i usunięte');
         }
 
@@ -316,17 +314,32 @@ exports.updatePaymentStatus = async (req, res) => {
 
 exports.getUserOrders = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user.id;
 
         const orders = await Order.findAll({
             where: { userId },
-            attributes: ['orderNumber', 'status'],
+            attributes: ['orderNumber', 'status', 'totalPrice', 'createdAt'],
             order: [['createdAt', 'DESC']],
+            include: [
+                {
+                    model: Product,
+                    as: 'product',
+                    attributes: ['name'],
+                },
+            ],
         });
+
+        const result = orders.map(order => ({
+            orderNumber: order.orderNumber,
+            status: order.status,
+            totalPrice: order.totalPrice,
+            createdAt: order.createdAt,
+            productName: order.product?.name || null
+        }));
 
         return res.json({
             success: true,
-            orders,
+            orders: result,
         });
     } catch (err) {
         console.error('Błąd przy pobieraniu listy zamówień użytkownika:', err);

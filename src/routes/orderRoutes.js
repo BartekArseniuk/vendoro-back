@@ -12,7 +12,7 @@ const { verifySession } = require('../middleware/sessionMiddleware');
  *       - Orders
  *     security:
  *       - bearerAuth: []
- *     description: Tworzy nowe zamówienie na podstawie przesłanych danych
+ *     description: Tworzy nowe zamówienie na podstawie przesłanych danych. Użytkownik jest pobierany z sesji.
  *     requestBody:
  *       required: true
  *       content:
@@ -20,7 +20,6 @@ const { verifySession } = require('../middleware/sessionMiddleware');
  *           schema:
  *             type: object
  *             required:
- *               - userId
  *               - productId
  *               - shippingMethod
  *               - shippingAddressId
@@ -28,9 +27,6 @@ const { verifySession } = require('../middleware/sessionMiddleware');
  *               - shippingPrice
  *               - paymentMethod
  *             properties:
- *               userId:
- *                 type: integer
- *                 example: 1
  *               productId:
  *                 type: integer
  *                 example: 5
@@ -88,6 +84,22 @@ const { verifySession } = require('../middleware/sessionMiddleware');
  */
 router.post('/create', verifySession, OrdersController.createOrder);
 
+/**
+ * @swagger
+ * /api/orders/payu-callback:
+ *   post:
+ *     summary: Callback od PayU
+ *     tags:
+ *       - Orders
+ *     description: Przetwarza odpowiedź zwrotną z PayU
+ *     responses:
+ *       200:
+ *         description: Callback przetworzony
+ *       400:
+ *         description: Niepoprawne dane
+ *       500:
+ *         description: Błąd serwera
+ */
 router.post('/payu-callback', OrdersController.payuCallback);
 
 /**
@@ -99,7 +111,6 @@ router.post('/payu-callback', OrdersController.payuCallback);
  *       - Orders
  *     security:
  *       - bearerAuth: []
- *     description: Aktualizuje status zamówienia o podanym ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -107,7 +118,6 @@ router.post('/payu-callback', OrdersController.payuCallback);
  *         description: ID zamówienia
  *         schema:
  *           type: integer
- *           example: 10
  *     requestBody:
  *       required: true
  *       content:
@@ -126,7 +136,7 @@ router.post('/payu-callback', OrdersController.payuCallback);
  *       404:
  *         description: Zamówienie nie znalezione
  *       500:
- *         description: Błąd serwera przy aktualizacji statusu
+ *         description: Błąd serwera
  */
 router.put('/:id/status', verifySession, OrdersController.updateOrderStatus);
 
@@ -134,20 +144,17 @@ router.put('/:id/status', verifySession, OrdersController.updateOrderStatus);
  * @swagger
  * /api/orders/{orderId}/payment-status:
  *   put:
- *     summary: Aktualizacja statusu płatności zamówienia
+ *     summary: Aktualizacja statusu płatności
  *     tags:
  *       - Orders
  *     security:
  *       - bearerAuth: []
- *     description: Aktualizuje status płatności zamówienia
  *     parameters:
  *       - in: path
  *         name: orderId
  *         required: true
- *         description: ID zamówienia
  *         schema:
  *           type: integer
- *           example: 10
  *     requestBody:
  *       required: true
  *       content:
@@ -162,38 +169,29 @@ router.put('/:id/status', verifySession, OrdersController.updateOrderStatus);
  *                 example: paid
  *               transactionId:
  *                 type: string
- *                 example: "TX123456789"
+ *                 example: TX123456789
  *     responses:
  *       200:
  *         description: Status płatności zaktualizowany
  *       404:
  *         description: Płatność nie znaleziona
  *       500:
- *         description: Błąd serwera przy aktualizacji płatności
+ *         description: Błąd serwera
  */
 router.put('/:orderId/payment-status', verifySession, OrdersController.updatePaymentStatus);
 
 /**
  * @swagger
- * /api/orders/user/{userId}:
+ * /api/orders/user:
  *   get:
- *     summary: Pobranie listy zamówień użytkownika
+ *     summary: Lista zamówień aktualnie zalogowanego użytkownika
  *     tags:
  *       - Orders
  *     security:
  *       - bearerAuth: []
- *     description: Zwraca listę zamówień użytkownika o podanym ID
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         description: ID użytkownika
- *         schema:
- *           type: integer
- *           example: 1
  *     responses:
  *       200:
- *         description: Lista zamówień użytkownika
+ *         description: Lista zamówień
  *         content:
  *           application/json:
  *             schema:
@@ -201,6 +199,7 @@ router.put('/:orderId/payment-status', verifySession, OrdersController.updatePay
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
  *                 orders:
  *                   type: array
  *                   items:
@@ -208,33 +207,41 @@ router.put('/:orderId/payment-status', verifySession, OrdersController.updatePay
  *                     properties:
  *                       orderNumber:
  *                         type: string
- *                         example: ORD-2505-4821
+ *                         example: ORD-2506-1234
  *                       status:
  *                         type: string
  *                         example: shipped
+ *                       totalPrice:
+ *                         type: number
+ *                         format: float
+ *                         example: 189.99
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: 2025-06-29T14:32:00Z
+ *                       productName:
+ *                         type: string
+ *                         example: "Koszula męska premium"
  *       500:
- *         description: Błąd serwera przy pobieraniu zamówień
+ *         description: Błąd serwera
  */
-router.get('/user/:userId', verifySession, OrdersController.getUserOrders);
+router.get('/user', verifySession, OrdersController.getUserOrders);
 
 /**
  * @swagger
  * /api/orders/{id}:
  *   get:
- *     summary: Pobranie szczegółów zamówienia
+ *     summary: Pobierz szczegóły zamówienia
  *     tags:
  *       - Orders
  *     security:
  *       - bearerAuth: []
- *     description: Pobiera szczegóły zamówienia na podstawie ID
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID zamówienia
  *         schema:
  *           type: integer
- *           example: 10
  *     responses:
  *       200:
  *         description: Szczegóły zamówienia
@@ -247,63 +254,10 @@ router.get('/user/:userId', verifySession, OrdersController.getUserOrders);
  *                   type: boolean
  *                 order:
  *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 10
- *                     orderNumber:
- *                       type: string
- *                       example: ORD-2505-4821
- *                     status:
- *                       type: string
- *                       example: shipped
- *                     product:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: integer
- *                           example: 5
- *                         name:
- *                           type: string
- *                           example: Produkt X
- *                         price:
- *                           type: number
- *                           format: float
- *                           example: 150.00
- *                     payment:
- *                       type: object
- *                       properties:
- *                         status:
- *                           type: string
- *                           example: paid
- *                         method:
- *                           type: string
- *                           example: credit_card
- *                     user:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: integer
- *                           example: 1
- *                         name:
- *                           type: string
- *                           example: Jan Kowalski
- *                     shippingAddress:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: integer
- *                           example: 2
- *                         street:
- *                           type: string
- *                           example: Ulica Kwiatowa 15A
- *                         city:
- *                           type: string
- *                           example: Warszawa
  *       404:
  *         description: Zamówienie nie znalezione
  *       500:
- *         description: Błąd serwera przy pobieraniu zamówienia
+ *         description: Błąd serwera
  */
 router.get('/:id', verifySession, OrdersController.getOrder);
 

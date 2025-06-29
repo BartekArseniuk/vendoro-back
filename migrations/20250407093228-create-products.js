@@ -79,7 +79,7 @@ module.exports = {
       },
       isSold: {
         type: Sequelize.BOOLEAN,
-        allowNull: false,
+        allowNull: true,
         defaultValue: false,
       },
       createdAt: {
