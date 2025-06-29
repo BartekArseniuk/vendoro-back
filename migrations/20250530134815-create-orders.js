@@ -104,6 +104,10 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      trackingNumber: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

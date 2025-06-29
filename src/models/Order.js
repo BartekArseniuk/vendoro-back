@@ -75,6 +75,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    trackingNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   }, {
     tableName: 'orders',
     timestamps: true,

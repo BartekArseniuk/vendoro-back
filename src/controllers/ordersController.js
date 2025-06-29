@@ -245,7 +245,7 @@ exports.payuCallback = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, trackingNumber } = req.body;
 
         const order = await Order.findByPk(id, {
             include: [
@@ -265,6 +265,11 @@ exports.updateOrderStatus = async (req, res) => {
         }
 
         order.status = status;
+
+        if (trackingNumber) {
+            order.trackingNumber = trackingNumber;
+        }
+
         await order.save();
 
         return res.json({
@@ -316,36 +321,83 @@ exports.getUserOrders = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        const orders = await Order.findAll({
+        const commonIncludes = [
+            {
+                model: Product,
+                as: 'product',
+                attributes: ['name'],
+            },
+            {
+                model: Address,
+                as: 'shippingAddress',
+                attributes: ['street', 'houseNumber', 'city', 'postalCode']
+            },
+            {
+                model: User,
+                as: 'user',
+                attributes: ['firstName', 'lastName', 'email', 'phone']
+            }
+        ];
+
+        const bought = await Order.findAll({
             where: { userId },
-            attributes: ['orderNumber', 'status', 'totalPrice', 'createdAt'],
+            attributes: ['orderNumber', 'trackingNumber', 'status', 'totalPrice', 'createdAt'],
+            order: [['createdAt', 'DESC']],
+            include: commonIncludes
+        });
+
+        const sold = await Order.findAll({
+            attributes: ['orderNumber', 'trackingNumber', 'status', 'totalPrice', 'createdAt'],
             order: [['createdAt', 'DESC']],
             include: [
                 {
                     model: Product,
                     as: 'product',
+                    where: { userId },
                     attributes: ['name'],
                 },
-            ],
+                {
+                    model: Address,
+                    as: 'shippingAddress',
+                    attributes: ['street', 'houseNumber', 'city', 'postalCode']
+                },
+                {
+                    model: User,
+                    as: 'user',
+                    attributes: ['firstName', 'lastName', 'email', 'phone']
+                }
+            ]
         });
 
-        const result = orders.map(order => ({
+        const formatOrders = (orders) => orders.map(order => ({
             orderNumber: order.orderNumber,
             status: order.status,
             totalPrice: order.totalPrice,
+            trackingNumber: order.trackingNumber || null,
             createdAt: order.createdAt,
-            productName: order.product?.name || null
+            productName: order.product?.name || null,
+            shippingAddress: order.shippingAddress ? {
+                street: order.shippingAddress.street,
+                houseNumber: order.shippingAddress.houseNumber,
+                city: order.shippingAddress.city,
+                postalCode: order.shippingAddress.postalCode,
+                recipientName: `${order.user?.firstName || ''} ${order.user?.lastName || ''}`.trim(),
+                email: order.user?.email || null,
+                phone: order.user?.phone || null
+            } : null
         }));
 
         return res.json({
             success: true,
-            orders: result,
+            boughtOrders: formatOrders(bought),
+            soldOrders: formatOrders(sold),
         });
+
     } catch (err) {
-        console.error('Błąd przy pobieraniu listy zamówień użytkownika:', err);
+        console.error('Błąd przy pobieraniu zamówień:', err);
         return res.status(500).json({
             success: false,
-            message: 'Błąd serwera przy pobieraniu listy zamówień',
+            message: 'Błąd serwera przy pobieraniu zamówień',
         });
     }
 };
