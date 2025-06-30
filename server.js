@@ -116,6 +116,7 @@ const options = {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, options));
 
 app.use(adminJs.options.rootPath, adminRouter);
+app.use('/admin-assets', express.static(path.join(__dirname, 'admin', 'assets')));
 
 app.use('/api/users', authRoutes);
 app.use('/api/users', userRoutes);

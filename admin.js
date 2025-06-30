@@ -18,16 +18,20 @@ const __dirname = path.dirname(__filename)
 
 AdminJS.registerAdapter(AdminJSSequelize)
 
-// Rejestracja komponentu dashboardu
+// Rejestracja komponentów
 const componentLoader = new ComponentLoader()
 const COMPONENTS = {
-  Dashboard: componentLoader.add('Dashboard', path.join(__dirname, 'admin', 'dashboard-component.jsx'))
+  Dashboard: componentLoader.add('Dashboard', path.join(__dirname, 'admin', 'dashboard-component.jsx')),
+  Login: componentLoader.override('Login', path.join(__dirname, 'admin', 'custom-login.jsx')),
 }
 
 const adminJs = new AdminJS({
   databases: [db.sequelize],
   rootPath: '/admin',
   componentLoader,
+  loginPage: {
+    component: COMPONENTS.Login,
+  },
   dashboard: {
     handler: async (request) => {
       const days = parseInt(request.query?.days) || 7
