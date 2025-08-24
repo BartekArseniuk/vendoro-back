@@ -97,6 +97,26 @@ router.get('/category/:categoryId', ProductController.getProductsByCategoryId);
 
 /**
  * @swagger
+ * /api/products/recommended:
+ *   get:
+ *     summary: Polecane dla Ciebie (lub Trending dla niezalogowanych)
+ *     description: >
+ *       Zwraca do 12 produktów. Dla zalogowanego użytkownika lista
+ *       personalizowana na podstawie polubień i/lub jego ofert.
+ *       Dla niezalogowanego zwracane są produkty trending (najwięcej polubień + świeże).
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []   # auth jest opcjonalny – jeśli brak tokena, zwracany jest fallback Trending
+ *     responses:
+ *       200:
+ *         description: Lista polecanych/trending produktów
+ *       500:
+ *         description: Błąd serwera
+ */
+router.get('/recommended', ProductController.getRecommendedForUser);
+
+/**
+ * @swagger
  * /api/products/{id}:
  *   get:
  *     summary: Szczegóły produktu

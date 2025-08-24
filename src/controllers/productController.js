@@ -2,6 +2,24 @@ const { Product, ProductLike, User, Category, Rating } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('../../config/db');
 
+const withLikesCount = (alias = 'likesCount') => ([
+    [
+        sequelize.literal(`(
+      SELECT COUNT(*)
+      FROM \`product_likes\` pl
+      WHERE pl.\`productId\` = \`Product\`.\`id\`
+    )`),
+        alias
+    ]
+]);
+
+const addLikesToProducts = async (products) => {
+    return Promise.all(products.map(async (product) => {
+        const likesCount = await ProductLike.count({ where: { productId: product.id } });
+        return { ...product.toJSON(), likesCount };
+    }));
+};
+
 exports.searchProducts = async (req, res) => {
     const { query } = req.query;
 
@@ -28,13 +46,6 @@ exports.searchProducts = async (req, res) => {
         console.error(error);
         return res.status(500).json({ message: 'Błąd przy wyszukiwaniu produktów' });
     }
-};
-
-const addLikesToProducts = async (products) => {
-    return Promise.all(products.map(async (product) => {
-        const likesCount = await ProductLike.count({ where: { productId: product.id } });
-        return { ...product.toJSON(), likesCount };
-    }));
 };
 
 exports.getLatestProducts = async (req, res) => {
@@ -289,5 +300,185 @@ exports.toggleLike = async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Błąd podczas zmiany stanu polubienia' });
+    }
+};
+
+exports.getRecommendedForUser = async (req, res) => {
+    const userId = req.user?.id;
+
+    try {
+        if (!userId) {
+            const trending = await Product.findAll({
+                where: { isSold: false },
+                attributes: [
+                    'id', 'name', 'description', 'price', 'photo1', 'categoryId', 'createdAt',
+                    ...withLikesCount()
+                ],
+                order: [
+                    [sequelize.literal('`likesCount`'), 'DESC'],
+                    ['createdAt', 'DESC']
+                ],
+                limit: 12
+            });
+            return res.status(200).json(trending);
+        }
+
+        const liked = await ProductLike.findAll({
+            where: { userId },
+            attributes: [],
+            include: [{
+                model: Product,
+                attributes: ['categoryId', 'price'],
+                required: true
+            }]
+        });
+
+        let userOwned = [];
+        if (liked.length === 0) {
+            userOwned = await Product.findAll({
+                where: { userId },
+                attributes: ['categoryId', 'price']
+            });
+        }
+
+        const signalRows = [
+            ...liked.map(l => l.Product),
+            ...userOwned
+        ];
+
+        if (signalRows.length === 0) {
+            const trending = await Product.findAll({
+                where: { isSold: false },
+                attributes: [
+                    'id', 'name', 'description', 'price', 'photo1', 'categoryId', 'createdAt',
+                    ...withLikesCount()
+                ],
+                order: [
+                    [sequelize.literal('`likesCount` DESC'), 'DESC'],
+                    ['createdAt', 'DESC']
+                ],
+                limit: 12
+            });
+            return res.status(200).json(trending);
+        }
+
+        const categoryFreq = {};
+        const prices = [];
+        for (const r of signalRows) {
+            if (r.categoryId) categoryFreq[r.categoryId] = (categoryFreq[r.categoryId] || 0) + 1;
+            if (r.price != null) prices.push(Number(r.price));
+        }
+
+        const topCategories = Object.entries(categoryFreq)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([catId]) => Number(catId));
+
+        if (topCategories.length === 0) {
+            const trending = await Product.findAll({
+                where: { isSold: false },
+                attributes: [
+                    'id', 'name', 'description', 'price', 'photo1', 'categoryId', 'createdAt',
+                    ...withLikesCount()
+                ],
+                order: [
+                    [sequelize.literal('`likesCount` DESC'), 'DESC'],
+                    ['createdAt', 'DESC']
+                ],
+                limit: 12
+            });
+            return res.status(200).json(trending);
+        }
+
+        const mid = prices.sort((a, b) => a - b)[Math.floor(prices.length / 2)] || null;
+        const priceTol = mid ? Math.max(50, Math.round(mid * 0.4)) : null;
+
+        const baseWhere = {
+            isSold: false,
+            categoryId: { [Op.in]: topCategories },
+            userId: { [Op.ne]: userId }
+        };
+        if (mid && priceTol) {
+            baseWhere.price = { [Op.between]: [mid - priceTol, mid + priceTol] };
+        }
+
+        const catWeights = topCategories.reduce((acc, catId, i) => {
+            const weight = (topCategories.length - i);
+            acc.push(`WHEN \`Product\`.\`categoryId\` = ${catId} THEN ${weight}`);
+            return acc;
+        }, []);
+        const categoryWeightSql = `CASE ${catWeights.join(' ')} ELSE 0 END`;
+
+        const candidates = await Product.findAll({
+            where: baseWhere,
+            attributes: [
+                'id', 'name', 'description', 'price', 'photo1', 'categoryId', 'createdAt',
+                ...withLikesCount(),
+                [
+                    sequelize.literal(`GREATEST(0, 100000 - TIMESTAMPDIFF(HOUR, \`Product\`.\`createdAt\`, NOW()))`),
+                    'freshnessScore'
+                ],
+                ...(mid ? [[
+                    sequelize.literal(`(CASE WHEN \`Product\`.\`price\` IS NULL THEN 0 ELSE (1000 / (1 + ABS(\`Product\`.\`price\` - ${mid}))) END)`),
+                    'priceFit'
+                ]] : []),
+                [sequelize.literal(categoryWeightSql), 'categoryWeight'],
+                [sequelize.literal(`
+          (${categoryWeightSql})*3
+          + LOG(LEAST(GREATEST(1, (
+              SELECT COUNT(*) FROM \`product_likes\` pl2 WHERE pl2.\`productId\` = \`Product\`.\`id\`
+            )), 100) + 1)*2
+          + GREATEST(0, 100000 - TIMESTAMPDIFF(HOUR, \`Product\`.\`createdAt\`, NOW()))
+          ${mid ? `+ (CASE WHEN \`Product\`.\`price\` IS NULL THEN 0 ELSE (1000 / (1 + ABS(\`Product\`.\`price\` - ${mid}))) END)` : ``}
+        `), 'score']
+            ],
+            order: [[sequelize.literal('`score`'), 'DESC']],
+            limit: 60
+        });
+
+        const byCat = new Map();
+        for (const p of candidates) {
+            const k = p.categoryId || 0;
+            if (!byCat.has(k)) byCat.set(k, []);
+            byCat.get(k).push(p);
+        }
+        const diversified = [];
+        let added = true;
+        while (diversified.length < 12 && added) {
+            added = false;
+            for (const arr of byCat.values()) {
+                if (arr.length && diversified.length < 12) {
+                    diversified.push(arr.shift());
+                    added = true;
+                }
+            }
+        }
+
+        if (diversified.length < 12) {
+            const excludeIds = diversified.map(p => p.id);
+            const fill = await Product.findAll({
+                where: {
+                    isSold: false,
+                    id: { [Op.notIn]: excludeIds },
+                    userId: { [Op.ne]: userId }
+                },
+                attributes: [
+                    'id', 'name', 'description', 'price', 'photo1', 'categoryId', 'createdAt',
+                    ...withLikesCount()
+                ],
+                order: [
+                    [sequelize.literal('`likesCount` DESC'), 'DESC'],
+                    ['createdAt', 'DESC']
+                ],
+                limit: 12 - diversified.length
+            });
+            diversified.push(...fill);
+        }
+
+        return res.status(200).json(diversified);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Błąd przy generowaniu polecanych' });
     }
 };
