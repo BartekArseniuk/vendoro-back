@@ -105,6 +105,19 @@ exports.createOrder = async (req, res) => {
 
         if (paymentMethod !== 'payu') {
             await product.update({ isSold: true });
+
+            const fullOrderForEmail = await Order.findByPk(order.id, {
+                include: [
+                    { model: Product, as: 'product', include: [{ model: User, as: 'user' }] },
+                    { model: User, as: 'user' },
+                    { model: Address, as: 'shippingAddress' },
+                    { model: Payment, as: 'payment' },
+                ]
+            });
+
+            await sendOrderConfirmationToCustomer(fullOrderForEmail.user.email, fullOrderForEmail);
+
+            await sendOrderNotificationToSeller(fullOrderForEmail.product.user.email, fullOrderForEmail);
         }
 
         if (paymentMethod === 'payu') {

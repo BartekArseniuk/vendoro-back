@@ -2,6 +2,11 @@
 <html lang="pl">
 
 <head>
+    <meta charset="utf-8" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta name="color-scheme" content="light only" />
+    <meta name="supported-color-schemes" content="light" />
+    <title>Zamówienie</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -26,6 +31,7 @@
             color: #FE8D1C;
             text-align: center;
             font-size: 24px;
+            margin: 0 0 10px;
         }
 
         p {
@@ -33,6 +39,7 @@
             line-height: 1.6;
             color: #555;
             text-align: center;
+            margin: 8px 0;
         }
 
         .order-info {
@@ -41,6 +48,11 @@
             border-radius: 5px;
             margin: 15px 0;
             text-align: left;
+        }
+
+        .order-info p {
+            text-align: left;
+            margin: 6px 0;
         }
 
         footer {
@@ -56,6 +68,12 @@
             text-align: center;
             margin-top: 30px;
             font-style: italic;
+        }
+
+        .divider {
+            height: 1px;
+            background: #eee;
+            margin: 16px 0;
         }
     </style>
 </head>
@@ -75,28 +93,49 @@
                 <%= order.orderNumber %>
             </p>
             <p><strong>Produkt:</strong>
-                <%= order.product.name %>
+                <%= order.product && order.product.name ? order.product.name : '' %>
             </p>
             <p><strong>Łączna kwota:</strong>
                 <%= order.totalPrice %> zł
             </p>
+
+            <% if (order.payment && order.payment.method) { %>
+                <p><strong>Metoda płatności:</strong>
+                    <%= order.payment.method==='payu' ? 'Płatność online (PayU)' :
+                        (order.payment.method==='cash_on_delivery' ? 'Płatność przy odbiorze' : order.payment.method) %>
+                </p>
+                <% } %>
+
+                    <% if (order.shippingAddress) { %>
+                        <div class="divider"></div>
+                        <p><strong>Adres dostawy:</strong><br />
+                            <%= order.shippingAddress.street %>
+                                <%= order.shippingAddress.houseNumber %><br />
+                                    <%= order.shippingAddress.postalCode %>
+                                        <%= order.shippingAddress.city %>
+                        </p>
+                        <% } %>
         </div>
 
         <% if (order.cancelled) { %>
             <p>Twoje zamówienie zostało anulowane, ponieważ płatność nie została zakończona.</p>
             <p>Jeśli nadal chcesz kupić ten produkt, spróbuj ponownie złożyć zamówienie.</p>
-            <% } else { %>
-                <p>Otrzymasz kolejną wiadomość, gdy paczka zostanie nadana.</p>
-                <p>Dziękujemy za zakupy w Vendoro!</p>
-                <% } %>
+            <% } else if (order.payment && order.payment.method==='cash_on_delivery' ) { %>
+                <p>Wybrałeś płatność przy odbiorze. Sprzedający przygotuje przesyłkę, a my damy znać, gdy paczka
+                    zostanie nadana.</p>
+                <p>Pamiętaj, by mieć przygotowaną kwotę przy doręczeniu.</p>
+                <% } else { %>
+                    <p>Otrzymasz kolejną wiadomość, gdy paczka zostanie nadana.</p>
+                    <p>Dziękujemy za zakupy w Vendoro!</p>
+                    <% } %>
 
-                    <div class="auto-notice">
-                        <p>Ta wiadomość została wygenerowana automatycznie. Prosimy na nią nie odpowiadać.</p>
-                    </div>
+                        <div class="auto-notice">
+                            <p>Ta wiadomość została wygenerowana automatycznie. Prosimy na nią nie odpowiadać.</p>
+                        </div>
 
-                    <footer>
-                        <p>Vendoro &copy; 2025</p>
-                    </footer>
+                        <footer>
+                            <p>Vendoro &copy; 2025</p>
+                        </footer>
     </div>
 </body>
 
