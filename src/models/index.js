@@ -17,6 +17,7 @@ db.Address = require('./Address')(sequelize, Sequelize.DataTypes);
 db.Order = require('./Order')(sequelize, Sequelize.DataTypes);
 db.Payment = require('./Payment')(sequelize, Sequelize.DataTypes);
 db.Rating = require('./Rating')(sequelize, Sequelize.DataTypes);
+db.Report = require('./Report')(sequelize, Sequelize.DataTypes);
 
 // Definicja relacji PO załadowaniu wszystkich modeli
 Object.keys(db).forEach(modelName => {

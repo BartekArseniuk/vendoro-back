@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="utf-8" />
+        <title>Status zgłoszenia</title>
+        <style>
+    body { font-family: Arial, sans-serif; background:#F2F2F2; margin:0; padding:20px; color:#242424; }
+    .container { max-width:600px; margin:0 auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,.1); }
+    h2 { color:#FE8D1C; text-align:center; margin:0 0 10px; font-size:22px; }
+    p { font-size:16px; line-height:1.6; color:#555; margin:8px 0; }
+    .center { text-align:center; }
+    .info { background:#f9f9f9; padding:14px; border-radius:6px; margin:16px 0; text-align:left; }
+    .info p { margin:6px 0; }
+    .status-pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#F3F4F6; color:#242424; font-size:13px; }
+    .details { background:#fff; border:1px solid #eee; border-radius:6px; padding:10px 12px; margin-top:6px; color:#555; white-space:pre-line; }
+    .divider { height:1px; background:#eee; margin:12px 0; }
+    .muted { color:#888; font-size:13px; text-align:center; margin-top:16px; }
+    .footer { text-align:center; color:#888; font-size:14px; margin-top:20px; }
+  </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Aktualizacja statusu zgłoszenia</h2>
+            <p class="center">Status Twojego zgłoszenia został
+                zaktualizowany.</p>
+
+            <div class="info">
+                <p><strong>Nowy status:</strong> <span class="status-pill"><%=
+                        statusLabel %></span></p>
+                <p><strong>Typ:</strong> <%= entityLabel %></p>
+                <p><strong>Dotyczy:</strong> <%= entityDisplay %></p>
+                <% if (report.reason) { %>
+                <p><strong>Powód zgłoszenia:</strong> <%= reasonLabel %></p>
+                <% } %>
+
+                <% if (report.details) { %>
+                <div class="divider"></div>
+                <p><strong>Szczegóły:</strong></p>
+                <div class="details"><%= report.details %></div>
+                <% } %>
+            </div>
+
+            <p class="center">Dziękujemy za pomoc w utrzymaniu jakości treści na
+                platformie.</p>
+            <p class="muted">Ta wiadomość została wysłana automatycznie –
+                prosimy na nią nie odpowiadać.</p>
+            <div class="footer">Vendoro © 2025</div>
+        </div>
+    </body>
+</html>
