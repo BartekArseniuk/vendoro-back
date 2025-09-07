@@ -13,6 +13,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: '📦'
+    },
+    imageUrl: {
+      type: DataTypes.STRING(2048),
+      allowNull: true,
     }
   }, {
     tableName: 'categories',

@@ -1,7 +1,9 @@
 const { Category } = require('../models');
+const { getCategoryImageUrl } = require('../services/unsplashService');
 
 exports.createCategory = async (req, res) => {
-    const { name, description, icon } = req.body;
+    const { name, description, icon, imageUrl } = req.body;
+    const autoImage = String(req.query.autoImage || '').toLowerCase() === 'true';
 
     if (!name) {
         return res.status(400).json({ message: 'Nazwa kategorii jest wymagana' });
@@ -16,10 +18,17 @@ exports.createCategory = async (req, res) => {
     }
 
     try {
+        let finalImageUrl = imageUrl || null;
+
+        if (!finalImageUrl && autoImage) {
+            finalImageUrl = await getCategoryImageUrl(name);
+        }
+
         const newCategory = await Category.create({
             name,
             description,
-            icon: icon || '📦'
+            icon: icon || '📦',
+            imageUrl: finalImageUrl
         });
 
         return res.status(201).json({
@@ -28,6 +37,9 @@ exports.createCategory = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
+        if (error?.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({ message: 'Kategoria o takiej nazwie już istnieje' });
+        }
         return res.status(500).json({ message: 'Błąd przy tworzeniu kategorii' });
     }
 };
@@ -58,7 +70,8 @@ exports.getCategoryById = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
     const { id } = req.params;
-    const { name, description, icon } = req.body;
+    const { name, description, icon, imageUrl } = req.body;
+    const autoImage = String(req.query.autoImage || '').toLowerCase() === 'true';
 
     if (name && name.length > 255) {
         return res.status(400).json({ message: 'Nazwa kategorii nie może przekroczyć 255 znaków' });
@@ -70,14 +83,22 @@ exports.updateCategory = async (req, res) => {
 
     try {
         const category = await Category.findByPk(id);
-
+        
         if (!category) {
             return res.status(404).json({ message: 'Kategoria nie znaleziona' });
         }
 
-        category.name = name || category.name;
-        category.description = description || category.description;
-        category.icon = icon || category.icon; // Aktualizacja ikony
+        if (name) category.name = name;
+        if (description !== undefined) category.description = description;
+        if (icon !== undefined) category.icon = icon;
+
+        if (imageUrl !== undefined) {
+            category.imageUrl = imageUrl || null;
+        } else if (autoImage && (name || !category.imageUrl)) {
+            const query = name || category.name;
+            const fetched = await getCategoryImageUrl(query);
+            if (fetched) category.imageUrl = fetched;
+        }
 
         await category.save();
 
@@ -87,6 +108,9 @@ exports.updateCategory = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
+        if (error?.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({ message: 'Kategoria o takiej nazwie już istnieje' });
+        }
         return res.status(500).json({ message: 'Błąd przy aktualizacji kategorii' });
     }
 };

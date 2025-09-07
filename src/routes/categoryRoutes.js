@@ -10,7 +10,17 @@ const { verifyAdmin } = require('../middleware/adminMiddleware');
  *     summary: Tworzenie nowej kategorii
  *     tags:
  *       - Categories
- *     description: Tworzy nową kategorię w systemie
+ *     description: >
+ *       Tworzy nową kategorię w systemie.  
+ *       - Możesz podać własny `imageUrl`.  
+ *       - Jeśli nie podasz `imageUrl`, a dodasz query param `?autoImage=true`, serwer spróbuje pobrać obraz z Unsplash na podstawie nazwy kategorii.
+ *     parameters:
+ *       - in: query
+ *         name: autoImage
+ *         schema:
+ *           type: boolean
+ *         required: false
+ *         description: Automatyczne pobranie obrazu z Unsplash, jeśli `imageUrl` nie podano.
  *     requestBody:
  *       required: true
  *       content:
@@ -26,6 +36,12 @@ const { verifyAdmin } = require('../middleware/adminMiddleware');
  *               description:
  *                 type: string
  *                 example: Kategoria zawierająca produkty elektroniczne
+ *               icon:
+ *                 type: string
+ *                 example: "💻"
+ *               imageUrl:
+ *                 type: string
+ *                 example: "https://images.unsplash.com/photo-123456"
  *     responses:
  *       201:
  *         description: Kategoria została utworzona pomyślnie
@@ -83,7 +99,10 @@ router.get('/:id', CategoryController.getCategoryById);
  *     summary: Aktualizacja kategorii
  *     tags:
  *       - Categories
- *     description: Umożliwia aktualizację nazwy lub opisu kategorii
+ *     description: >
+ *       Aktualizuje istniejącą kategorię.  
+ *       - Możesz podać nowy `imageUrl`.  
+ *       - Jeśli nie podasz `imageUrl`, a dodasz query param `?autoImage=true`, serwer spróbuje pobrać obraz z Unsplash na podstawie nazwy kategorii.
  *     parameters:
  *       - in: path
  *         name: id
@@ -92,6 +111,12 @@ router.get('/:id', CategoryController.getCategoryById);
  *         schema:
  *           type: integer
  *           example: 1
+ *       - in: query
+ *         name: autoImage
+ *         schema:
+ *           type: boolean
+ *         required: false
+ *         description: Automatyczne pobranie obrazu z Unsplash, jeśli `imageUrl` nie podano.
  *     requestBody:
  *       required: true
  *       content:
@@ -105,6 +130,12 @@ router.get('/:id', CategoryController.getCategoryById);
  *               description:
  *                 type: string
  *                 example: Kategoria zawierająca komputery
+ *               icon:
+ *                 type: string
+ *                 example: "💻"
+ *               imageUrl:
+ *                 type: string
+ *                 example: "https://images.unsplash.com/photo-654321"
  *     responses:
  *       200:
  *         description: Kategoria została zaktualizowana
