@@ -4,7 +4,40 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:report": "jest --json --outputFile=test-report.json && node -e \"require('open')('test-report.html')\"",
+    "test:html": "jest && start test-report.html"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "reporters": [
+      "default",
+      [
+        "jest-html-reporter",
+        {
+          "pageTitle": "Vendoro Backend - Test Report",
+          "outputPath": "test-report.html",
+          "includeFailureMsg": true,
+          "includeConsoleLog": true,
+          "theme": "defaultTheme",
+          "logo": "",
+          "executionTimeWarningThreshold": 5
+        }
+      ]
+    ]
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-html-reporter": "^4.3.0",
+    "supertest": "^6.3.3"
   },
   "repository": {
     "type": "git",
